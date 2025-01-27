@@ -1,12 +1,14 @@
 # **Sakuya AC**
-![Sakuya Pixel Art](https://media.tenor.com/_Xx0YTgxClEAAAAC/sakuemon-pixel-art-touhou-sakuya-maid.gif)
+<div align=center>
+   <img src="https://media1.tenor.com/m/zqopwoNZBvIAAAAd/sakuemon-pixel-art.gif" alt="sakuya walking gif" width=300px>
+</div>
+
 ### Perfect and Elegant Anti Cheat your YSFlight server
 ---
 
 ## **Features**
 - Intercepts and parses network packets to monitor gameplay.
 - Detects and logs suspicious activities, like unauthorized modifications.
-- Supports multiple simultaneous client connections.
 - Easy configuration via `config.py`.
 
 ---
