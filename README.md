@@ -3,7 +3,7 @@
    <img src="https://media1.tenor.com/m/zqopwoNZBvIAAAAd/sakuemon-pixel-art.gif" alt="sakuya walking gif" width=300px>
 </div>
 
-### Perfect and Elegant Anti Cheat your YSFlight server
+### Perfect and Elegant Anti Cheat for your YSFlight server
 ---
 
 ## **Features**
