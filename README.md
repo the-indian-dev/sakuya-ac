@@ -51,12 +51,12 @@ PROXY_PORT = 9000          # Port where the proxy listens
 2. Monitor logs to view real-time parsing and activity tracking.
 
 ---
-## **TODO :todo:**
+## **TODO :memo:**
 1. Add more detection rules.
 2. Fix on ground re supply which triggers the cheat detection.
 3. Negative g-values are wrong interpeted
 4. Add more documentation.
-5. Add red smoke emition on death
+5. Add black smoke emission on death
 6. Add radar features
 7. Add Plugin API
 ---
