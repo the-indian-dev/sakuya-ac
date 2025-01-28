@@ -1,6 +1,7 @@
 class Player:
     def __init__(self,username, playerId, x, y, z, throttle, aam, agm,
-                gunAmmo, rktAmmo, fuel, ipAddr, life, vx, vy, vz, gValue):
+                gunAmmo, rktAmmo, fuel, ipAddr, life, vx, vy, vz, gValue,
+                streamWriterObject=None, warningSent=False, smokedAdded=False):
         self.username = username
         self.ip = ipAddr
         self.playerId = playerId
@@ -18,6 +19,9 @@ class Player:
         self.vy = vy
         self.vz = vz
         self.gValue = gValue
+        self.streamWriterObject = streamWriterObject
+        self.warningSent = warningSent
+        self.smokeAdded = smokedAdded
 
     def __str__(self):
         return f"Username: {self.username}, IP: {self.ip}, " \

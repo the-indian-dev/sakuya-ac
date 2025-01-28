@@ -8,7 +8,8 @@
 
 ## **Features**
 - Intercepts and parses network packets to monitor gameplay.
-- Detects and logs suspicious activities, like unauthorized modifications.
+- Adds features like G Limiter and Smoke Emission on Death.
+- All features are server side, vanilla client can join
 - Easy configuration via `config.py`.
 
 ---
@@ -56,7 +57,7 @@ PROXY_PORT = 9000          # Port where the proxy listens
 2. Fix on ground re supply which triggers the cheat detection.
 3. Negative g-values are wrong interpeted
 4. Add more documentation.
-5. Add black smoke emission on death
+~~5. Add black smoke emission on death~~ Implemented in latest commit
 6. Add radar features
 7. Add Plugin API
 ---
