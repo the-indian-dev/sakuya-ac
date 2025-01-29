@@ -10,6 +10,7 @@
 - Intercepts and parses network packets to monitor gameplay.
 - Adds features like G Limiter and Smoke Emission on Death.
 - All features are server side, vanilla client can join
+- Supports clients post 20150425 version to join the server (Experimental)
 - Easy configuration via `config.py`.
 
 ---
@@ -27,12 +28,13 @@
    ```
 
 2. Edit `config.py` to match your server and client setup.
+> **Warning**
+> Please ensure that you have put the correct YSFlight version in YSF_VERSION variable in `config.py`. This is important for the proxy to work correctly.
 
 3. Run the proxy server:
    ```bash
    python proxy.py
    ```
-
 ---
 
 ## **Configuration**
@@ -54,12 +56,10 @@ PROXY_PORT = 9000          # Port where the proxy listens
 ---
 ## **TODO :memo:**
 1. Add more detection rules.
-2. Fix on ground re supply which triggers the cheat detection.
-3. Negative g-values are wrong interpeted
-4. Add more documentation.
-~~5. Add black smoke emission on death~~ Implemented in latest commit
-6. Add radar features
-7. Add Plugin API
+2. Negative g-values are wrong interpeted
+3. Add more documentation.
+4. Add radar features
+5. Add Plugin API
 ---
 
 ## **Contact**
