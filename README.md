@@ -5,6 +5,8 @@
 
 ### Perfect and Elegant Anti Cheat for your YSFlight server
 ---
+Well it started as an anti cheat... and now aims to add more features to make YSFlight more realstic server side
+for vanilla clients.
 
 ## **Features**
 - Intercepts and parses network packets to monitor gameplay.
@@ -72,14 +74,12 @@ This project is licensed under the GNU General Public License v3.0. See the [LIC
 
 ---
 
-## **Contributing**
-Contributions are welcome! To contribute:
-1. Fork the repository.
-2. Create a feature branch (`git checkout -b feature-name`).
-3. Commit your changes (`git commit -m 'Add some feature'`).
-4. Push to the branch (`git push origin feature-name`).
-5. Open a pull request.
-
+## **Reporting Issues**
+1. Use Github issues tab to open an issue.
+2. Please provide detailed information about the issue you are facing.
+3. Give us all the log from console, it would be better if logging level was set to ``DEBUG``
+4. Please also give us the replay .yfs file while reporting issue
+5. If you have a feature request, please open an issue with the label `feature-request`.
 ---
 
 ## **Acknowledgments**

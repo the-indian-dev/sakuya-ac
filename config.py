@@ -15,6 +15,7 @@ PROXY_PORT = 9000
 # Native YSFlight Server
 # Please select the YSFlight server version for the
 # local ysflight server
+# Tested only with 20150425 version
 
 YSF_VERSION = 20150425
 
@@ -25,6 +26,8 @@ YSF_VERSION = 20150425
 VIA_VERSION = True
 
 # G Limit (abs(g) >= limit) and the player gets killed
+# If you wish to turn off G Limiter, consider using some
+# aribitary value like 100
 G_LIM = 4
 
 # Will appear as message + player name
