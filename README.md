@@ -8,6 +8,14 @@
 Well it started as an anti cheat... and now aims to add more features to make YSFlight more realstic server side
 for vanilla clients.
 
+## Test Server
+
+I have a server running at ``9m.theindiandev.in`` and port ``7915``
+with [2ch map](https://w.atwiki.jp/ysflight/pages/26.html) and latest version of
+Sakuya AC and G Limiter at 20. It also has all the experimental options turned on.
+
+---
+
 ## **Features**
 - Intercepts and parses network packets to monitor gameplay.
 - Adds features like G Limiter and Smoke Emission on Death.
@@ -65,8 +73,9 @@ PROXY_PORT = 9000          # Port where the proxy listens
 ---
 
 ## **Contact**
-If you have questions, feedback, or suggestions, feel free to reach out to me on Discord: **@theindiandev**
-
+- If you have questions, feedback, or suggestions, feel free to reach out to me on Discord: **@theindiandev**
+- You can email me at **theindiandev@theindiandev.in**
+- Join our discord server [here](https://discord.gg/CgEdmBQQMr)
 ---
 
 ## **License**
@@ -79,7 +88,7 @@ This project is licensed under the GNU General Public License v3.0. See the [LIC
 2. Please provide detailed information about the issue you are facing.
 3. Give us all the log from console, it would be better if logging level was set to ``DEBUG``
 4. Please also give us the replay .yfs file while reporting issue
-5. If you have a feature request, please open an issue with the label `feature-request`.
+5. If you have a feature request, please open an issue with the label `enhancement`.
 ---
 
 ## **Acknowledgments**
