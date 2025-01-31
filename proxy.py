@@ -48,9 +48,9 @@ async def handle_client(client_reader, client_writer):
                             if packet_type == 11:  # Flight data packet
                                     playerData = parseFlightData(data)
                                     player.playerId = playerData[1]
-                                    player.x = playerData[2]
-                                    player.y = playerData[3]
-                                    player.z = playerData[4]
+                                    player.setX(playerData[2])
+                                    player.setY(playerData[3])
+                                    player.setZ(playerData[4])
                                     player.throttle = playerData[22]
                                     player.aam = playerData[18]
                                     player.agm = playerData[19]
