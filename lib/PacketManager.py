@@ -652,9 +652,9 @@ class FSNETCMD_AIRPLANESTATE: #11
                 self.thrust_vector["reverser"] = (c & 15) / 15.0
                 c = unpack("B", self.buffer[76:77])[0]
                 self.bomb_bay_info = (c >> 4 & 15) / 15.0
-        
+
         else:
-            
+
             self.position = list(unpack("fff", self.buffer[20:32]))
             self.atti = list(map(lambda x: x / (pi / 32768.0),
                                  unpack("hhh", self.buffer[32:38])))
@@ -687,7 +687,7 @@ class FSNETCMD_AIRPLANESTATE: #11
                 self.flags["smoke"] = (flags >> 8) & 255
                 if self.flags["smoke"] == 0:
                     self.flags["smoke"] = 255
-            
+
             self.throttle = unpack("B", self.buffer[76:77])[0]/99.0
             self.elev = unpack("b", self.buffer[77:78])[0]/99.0
             self.ail = unpack("b", self.buffer[78:79])[0]/99.0
@@ -699,7 +699,7 @@ class FSNETCMD_AIRPLANESTATE: #11
             if self.packet_version >= 1:
                 self.atti_velocity = list(map(lambda x: x / (pi / 32768.0),
                                           unpack("fff", self.buffer[83:95])))
-            
+
             if self.packet_version >= 2:
                 self.thrust_vector["vector"] = unpack("B", self.buffer[95:96])[0]/255.0
                 self.thrust_vector["reverser"] = unpack("B", self.buffer[96:97])[0]/255.0
@@ -824,7 +824,7 @@ class FSNETCMD_EMPTYPACKET:
         self.buffer = buffer
         if should_decode:
             self.decode()
-    
+
     def decode(self):
         pass # There are no messages in this packet!
 
@@ -951,7 +951,7 @@ class FSNETCMD_MISSILELAUNCH: #20
         self.fired_at = None
         if should_decode:
             self.decode()
-        
+
     def decode(self):
         self.weapon_type = unpack("H", self.buffer[4:6])[0]
         self.position = list(unpack("fff", self.buffer[6:18]))
@@ -961,14 +961,14 @@ class FSNETCMD_MISSILELAUNCH: #20
         self.fired_by = unpack("I", self.buffer[42:46])[0]
         if self.weapon_type in FSWEAPON_DICT:
             self.weapon_type = FSWEAPON_DICT[self.weapon_type]
-        
+
         if self.weapon_type in GUIDEDWEAPONS:
             self.v_max, self.mobility, self.radar = unpack("fff", self.buffer[46:58])
             self.fired_at_aircraft = bool(unpack("I", self.buffer[58:62])[0])
             self.fired_at = unpack("I", self.buffer[62:66])[0]
         elif self.weapon_type == "FSWEAPON_FLARE":
             self.v_max = unpack("f", self.buffer[46:50])[0]
-    
+
     @staticmethod
     def encode(weapon_type, position, atti, velocity, life_remaining, power, fired_by_aircraft, fired_by,
                v_max=None, mobility=None, radar=None, fired_at_aircraft=None, fired_at=None, with_size:bool=False):
@@ -986,8 +986,8 @@ class FSNETCMD_MISSILELAUNCH: #20
             buffer += pack("II", fired_by_aircraft, fired_by)
         if weapon_type_name == "FSWEAPON_FLARE":
             buffer += pack("f", v_max)
-        
+
         if with_size:
             return pack("I",len(buffer))+buffer
-
+        return buffer
 
