@@ -26,15 +26,15 @@ class FSNETCMD_ADDOBJECT: #5
             self.decode()
 
     def decode(self):
-        self.object_type, self.net_type = unpack("hh", self.buffer[4:8])
+        self.object_type, self.net_type = unpack("HH", self.buffer[4:8])
         #If object_type = 0, then it's an aircraft, and client will send
         # FSNETREADBACK_ADDAIRPLANE
         #If object_types = 1, then it's a ground object, and client will send
         # FSNETREADBACK_ADDGROUND
         self.object_id = unpack("I", self.buffer[8:12])[0]
         self.iff, _ = unpack("hh", self.buffer[12:16])
-        self.pos = unpack("fff", self.buffer[16:28])
-        self.atti = unpack("fff", self.buffer[28:40])
+        self.pos = list(unpack("fff", self.buffer[16:28]))
+        self.atti = list(unpack("fff", self.buffer[28:40]))
         self.identifier = unpack("32s", self.buffer[40:72])[0].decode().strip('\x00')
         self.substrname = unpack("32s", self.buffer[72:104])[0].decode().strip('\x00')
         self.ysfid = unpack("I", self.buffer[104:108])[0]
@@ -52,10 +52,12 @@ class FSNETCMD_ADDOBJECT: #5
                flags, flags0, outside_radius, aircraft_class=None, aircraft_category=None,
                pilot=None, with_size:bool=False):
 
-        buffer = pack("IHHIHHfff32s32sIIIf", 5, object_type, net_type, object_id,
-                      iff, 0, pos[0], pos[1], pos[2], atti[0], atti[1], atti[2],
-                      identifier.encode(), substrname.encode(), ysfid, flags,
-                      flags0, outside_radius)
+        buffer = pack('IHH', 5, object_type, net_type)
+        buffer += pack('IHHffffff', object_id, iff, 0, pos[0], pos[1], pos[2], atti[0], atti[1], atti[2])
+        buffer += pack('32s32sI', identifier.encode(), substrname.encode(), ysfid)
+        buffer += pack('II', flags, flags0)
+        buffer += pack('f', outside_radius)
+        
         if aircraft_class and aircraft_category:
             buffer += pack("hhh", aircraft_class, aircraft_category, 0)
         if pilot:

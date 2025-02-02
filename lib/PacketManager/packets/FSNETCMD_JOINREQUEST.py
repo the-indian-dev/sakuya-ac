@@ -23,7 +23,7 @@ class FSNETCMD_JOINREQUEST: #8
     @staticmethod
     def encode(iff, aircraft, start_pos, fuel, smoke, with_size:bool=False):
         buffer = pack("IHH32s32sHHH", 8, iff, 0, aircraft.encode(),
-                      start_pos.encode(), 0, fuel, smoke)
+                      start_pos.encode(), 1, fuel, smoke)
         if with_size:
             return pack("I",len(buffer))+buffer
         return buffer

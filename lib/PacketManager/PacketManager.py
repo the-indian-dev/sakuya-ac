@@ -2,7 +2,7 @@ from struct import unpack, pack
 from PacketManager.packets import MESSAGE_TYPES, FSWEAPON_DICT, GUIDEDWEAPONS
 
 
-class PackageManager:
+class PacketManager:
 
     def __init__(self):
         pass

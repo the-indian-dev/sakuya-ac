@@ -23,6 +23,11 @@ class FSNETCMD_LOGON: #1
             self.alias = self.buffer[24:].decode().strip('\x00')
         else:
             self.alias = self.username
+        if isinstance(self.username,bytes):
+            self.username = self.username.decode().strip('\x00')
+        if isinstance(self.alias,bytes):
+            self.alias = self.alias.decode().strip('\x00')
+
 
     @staticmethod   #Method to create a logon packet, if required.
     def encode(username, version, with_size:bool=False):
@@ -32,9 +37,16 @@ class FSNETCMD_LOGON: #1
         else:
             shortform = username
             alias = None
-        buffer = pack("I16sI", 1, shortform.encode(), version)
+        if isinstance(shortform,str):
+            shortform = shortform.encode()
+        buffer = pack("I16sI", 1, shortform, version)
         if alias:
-            buffer += alias.encode()
+            if isinstance(alias,str):
+                alias = alias.encode()
+            if len(alias)<200:
+                alias = alias.ljust(200,b'\x00')
+                alias += b'\x00\x00\x00\x00'
+            buffer += alias
 
         if with_size:
             return pack("I",len(buffer))+buffer

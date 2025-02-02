@@ -21,7 +21,9 @@ class FSNETCMD_LOADFIELD: #4
 
     @staticmethod
     def encode(field, flags, pos, atti, with_size:bool=False):
-        buffer = pack("I32sIffffff", 4, field.encode(), flags, pos[0], pos[1],
+        if isinstance(field, str):
+            field = field.encode()
+        buffer = pack("I32sIffffff", 4, field, flags, pos[0], pos[1],
                       pos[2], atti[0], atti[1], atti[2])
         if with_size:
             return pack("I",len(buffer))+buffer
