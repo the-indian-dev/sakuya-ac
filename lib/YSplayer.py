@@ -1,7 +1,9 @@
+from lib.loginHandler import Login
+
 class Player:
     def __init__(self,username, playerId, x, y, z, throttle, aam, agm,
                 gunAmmo, rktAmmo, fuel, ipAddr, life, vx, vy, vz, gValue,
-                streamWriterObject=None, warningSent=False, smokedAdded=False):
+                streamWriterObject=None, warningSent=False, smokedAdded=False, loginHandle=Login()):
         self.username = username
         self.ip = ipAddr
         self.playerId = playerId
@@ -22,6 +24,7 @@ class Player:
         self.streamWriterObject = streamWriterObject
         self.warningSent = warningSent
         self.smokeAdded = smokedAdded
+        self.loginHandle = loginHandle
 
     def __str__(self):
         return f"Username: {self.username}, IP: {self.ip}, " \

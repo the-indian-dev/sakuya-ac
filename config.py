@@ -3,7 +3,7 @@ from logging import DEBUG, WARN, INFO, CRITICAL
 # Configuration
 # Logging Level : Most of the times having INFO level is enough
 # But while submitting issues, please consider sending the logs with DEBUG level
-LOGGING_LEVEL = INFO
+LOGGING_LEVEL = DEBUG
 
 # Server Configuration
 # Replace with the YSFlight server address

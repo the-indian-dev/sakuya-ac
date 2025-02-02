@@ -6,10 +6,11 @@ Lisenced under GPLv3
 import asyncio
 from struct import unpack, pack
 from lib.parseFlightData import parseFlightData
-from lib import YSchat, YSplayer, YSendFlight, YSundead, YSviaversion
+from lib import YSchat, YSplayer, YSendFlight, YSundead, YSviaversion, loginHandler, expressLogin
 import logging
 from logging import critical, warning, info, debug
 from config import *
+from time import sleep
 
 # Configuration
 SERVER_HOST = SERVER_HOST
@@ -37,9 +38,19 @@ async def handle_client(client_reader, client_writer):
         async def forward(reader, writer, direction, player=player):
             while True:
                 try:
-                    data = await reader.read(4096)
-                    if not data:
+                    header = await reader.readexactly(4)  # Ensures we always get 4 bytes
+                    if not header:
+                        break  # Connection closed
+
+                    length = unpack("I", header)[0]
+
+                    remainder = await reader.read(length)
+
+                    if not remainder:
                         break
+
+                    data = header + remainder
+
                     if direction == "client_to_server":
                         try:
                             length, packet_type = unpack("<I I", data[:8])
@@ -111,11 +122,15 @@ async def handle_client(client_reader, client_writer):
                                 # username = (b''.join(unpack("II16cI", data)[2:16])).decode('ascii').strip('\x00')
                                 username = b''.join(extracted[2:16]).decode('ascii').strip('\x00')
                                 version = extracted[-1]
-                                info(f"Connection request by {player.username} : {ipAddr}; YSFVERSION = {version}")
+                                info(f"Connection request by {username} : {ipAddr}; YSFVERSION = {version}")
                                 player.username = username
                                 player.ip = ipAddr
                                 debug("Player object fixed!")
                                 debug(player)
+                                # targetWriter = player.streamWriterObject
+                                # targetWriter.write(b'\x04\x00\x00\x00\x10\x00\x00\x00')
+                                print("16 packet sent!")
+                                # await targetWriter.drain()
                                 if version != YSF_VERSION and VIA_VERSION:
                                     info(f"ViaVersion enabled : Porting {username} from {YSF_VERSION} to {version}")
                                     targetWriter = player.streamWriterObject
@@ -134,6 +149,10 @@ async def handle_client(client_reader, client_writer):
                                 # here we patch the packet to have smoke forcefully
                                 # This part also is for regen, so we disable cheat detection for health
                                 player.life = -1
+                            elif packet_type == 44:
+                                # We drop the packets from YSFlight and use it for ourselves
+                                debug("Packet verification unimplemented!")
+                                continue
                             """
                                 if player.life < 5:
                                     targetPlayer = player
@@ -158,6 +177,20 @@ async def handle_client(client_reader, client_writer):
                         if packet_type == 36:
                             # print("S2C ", str(data))
                             pass
+                        elif packet_type == 44: # Aircraft List
+                            # We modify the ysf's packet for express login
+                            if not player.loginHandle.loggedIn:
+                                targetWriter = player.streamWriterObject
+                                data = expressLogin.combinedPacket
+                                await targetWriter.write(expressLogin.combinedPacket)
+                                await sleep(2)
+                                await targetWriter.write(b'\x04\x00\x00\x00\x10\x00\x00\x00')
+                                print("Forcefully sent packet!")
+                                print(type(expressLogin.combinedPacket))
+                                await targetWriter.drain()
+                                player.loginHandle.loggedIn = True
+                                continue
+
                         """
                             targetWriter = player.streamWriterObject
                             id = player.playerId
