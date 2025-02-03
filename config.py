@@ -44,3 +44,12 @@ SMOKE_PLANE = True
 # Planes smoking minimum life
 
 SMOKE_LIFE = 5
+
+
+#Discord chat integration
+#Make sure to enable read message privilege for the bot.
+
+DISCORD_TOKEN = "YourDiscordBotTOKEN"
+
+# Channel ID for the chat
+CHANNEL_ID = 0 # Channel ID, as an integer
