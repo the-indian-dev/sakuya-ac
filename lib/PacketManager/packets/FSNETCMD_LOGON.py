@@ -52,3 +52,7 @@ class FSNETCMD_LOGON: #1
             return pack("I",len(buffer))+buffer
 
         return buffer
+
+    @staticmethod
+    def alter_version(buffer:bytes, new_version:int):
+        return buffer[:20]+pack("I",new_version)+buffer[24:]
