@@ -1,5 +1,5 @@
 from struct import pack, unpack
-from . import ERROR_CODES
+from .constants import ERROR_CODES
 
 class FSNETCMD_ERROR: #3
     def __init__(self, buffer:bytes, should_decode:bool=True):

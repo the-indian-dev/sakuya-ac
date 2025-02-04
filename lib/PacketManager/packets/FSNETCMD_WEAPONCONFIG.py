@@ -1,5 +1,5 @@
 from struct import pack, unpack
-from . import FSWEAPON_DICT
+from .constants import FSWEAPON_DICT
 
 class FSNETCMD_WEAPONCONFIG:
     def __init__(self, buffer:bytes, should_decode:bool=True):

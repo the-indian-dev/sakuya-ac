@@ -1,5 +1,5 @@
 from struct import pack, unpack
-from . import FSWEAPON_DICT
+from .constants import FSWEAPON_DICT
 
 class FSNETCMD_GETDAMAGE: #22
     """

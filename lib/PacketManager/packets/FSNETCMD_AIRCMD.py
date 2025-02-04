@@ -1,5 +1,5 @@
 from struct import pack, unpack
-from . import AIRCMD_KEYWORDS
+from .constants import AIRCMD_KEYWORDS
 
 class FSNETCMD_AIRCMD: #30
 

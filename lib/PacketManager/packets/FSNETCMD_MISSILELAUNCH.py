@@ -1,5 +1,5 @@
 from struct import pack, unpack
-from . import FSWEAPON_DICT, GUIDEDWEAPONS
+from .constants import FSWEAPON_DICT, GUIDEDWEAPONS
 
 class FSNETCMD_MISSILELAUNCH: #20
     """
