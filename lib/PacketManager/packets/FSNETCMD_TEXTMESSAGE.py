@@ -18,7 +18,7 @@ class FSNETCMD_TEXTMESSAGE: #32
 
     @staticmethod
     def encode(message:str, with_size:bool=False):
-        buffer = pack("I",32)+message.encode("utf-8")+b"\x00"
+        buffer = pack("III",32,0,0)+message.encode("utf-8")+b"\x00"
         if with_size:
             return pack("I",len(buffer))+buffer
         return buffer

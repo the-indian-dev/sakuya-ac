@@ -70,12 +70,15 @@ class FSNETCMD_AIRPLANESTATE: #11
         if self.packet_version == 4 or self.packet_version == 5:
 
             self.position = list(unpack("fff", self.buffer[14:26]))
-            self.atti = list(map(lambda x: x / (pi / 32768.0),
-                                 unpack("hhh", self.buffer[26:32])))
+            # self.atti = list(unpack("HHH", self.buffer[26:32]))
+            self.atti = list(map(lambda x: x * (pi / 32768.0),
+                                 unpack("HHH", self.buffer[26:32])))
+            print(self.atti)
+            
             self.velocity = list(map(lambda x: x/10,
-                                 unpack("hhh", self.buffer[32:38])))
-            self.atti_velocity = list(map(lambda x: x / (pi / 32768.0),
-                                 unpack("hhh", self.buffer[38:44])))
+                                 unpack("HHH", self.buffer[32:38])))
+            self.atti_velocity = list(map(lambda x: x * (pi / 32768.0),
+                                 unpack("HHH", self.buffer[38:44])))
             self.smoke_oil = unpack("h", self.buffer[44:46])[0]
 
             self.fuel = unpack("I", self.buffer[46:50])[0]
@@ -97,12 +100,13 @@ class FSNETCMD_AIRPLANESTATE: #11
             self.flags["ab"] = bool(flags & 1) # Last bit
             self.flags["firing"] = bool(flags &8)
             self.flags["smoke"] = 0
-
             if flags & 2:
+                
                 self.flags["smoke"] = (flags >> 8) & 255 # bitshift 8 to the right, 
                 #then mask with 255
                 if self.flags["smoke"] == 0:
                     self.flags["smoke"] = 255 # Need to review what this actuall does!
+            
             if flags & 16:
                 self.flags["beacon"] = True
             if flags & 32:
@@ -133,14 +137,15 @@ class FSNETCMD_AIRPLANESTATE: #11
         else:
 
             self.position = list(unpack("fff", self.buffer[16:28]))
-            self.atti = list(map(lambda x: x / (pi / 32768.0),
-                                 unpack("hhh", self.buffer[28:34])))
+            self.atti = list(map(lambda x: x * (pi / 32768.0),
+                        unpack("HHH", self.buffer[28:34])))
+
             
             self.velocity = list(map(lambda x: x/10,
-                                    unpack("hhh", self.buffer[34:40])))
+                                    unpack("HHH", self.buffer[34:40])))
             
             self.atti_velocity = list(map(lambda x: x / (pi / 32768.0),
-                                          unpack("hhh", self.buffer[40:46])))
+                                          unpack("HHH", self.buffer[40:46])))
             self.g_value = unpack("h", self.buffer[46:48])[0]/100.0
 
             self.gun_ammo, self.aam, self.agm, self.bomb, self.smoke_oil = unpack("hhhhh", self.buffer[48:58])
@@ -182,6 +187,36 @@ class FSNETCMD_AIRPLANESTATE: #11
                 self.thrust_vector["vector"] = unpack("B", self.buffer[95:96])[0]/255.0
                 self.thrust_vector["reverser"] = unpack("B", self.buffer[96:97])[0]/255.0
                 self.bomb_bay_info = unpack("B", self.buffer[97:98])[0]/255.0
+
+    def smoke(self):
+        if self.packet_version == 4 or self.packet_version == 5:
+            flag = unpack('h',self.buffer[56:58])[0]
+            flag &= ~((1<<8)|2)
+            flag |= (1<<8) |2
+            flag |= (1<<9)
+            flag |= (1<<10)
+            packet = self.buffer[:56] + pack('h',flag) + self.buffer[58:]
+            return pack('I',len(packet)) + packet
+        else:
+            flag = unpack('h',self.buffer[74:75])[0]
+        
+            flag &= ~((255<<8)|2)
+            flag |= (255<<8) | 2
+            print(flag)
+            packet = self.buffer[:74] + pack('h',flag) + self.buffer[76:]
+            return pack('I',len(packet)) + packet
+    
+    def stop_firing(self):
+        if self.packet_version == 4 or self.packet_version == 5:
+            flag = unpack('h',self.buffer[56:58])[0]
+            flag &= ~(8)
+            packet = self.buffer[:56] + pack('h',flag) + self.buffer[58:]
+            return pack('I',len(packet)) + packet
+        else:
+            flag = unpack('h',self.buffer[74:75])[0]
+            flag &= ~(8)
+            packet = self.buffer[:74] + pack('h',flag) + self.buffer[76:]
+            return pack('I',len(packet)) + packet
 
     @staticmethod
     def get_life(buffer:bytes):

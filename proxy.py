@@ -6,9 +6,9 @@ Lisenced under GPLv3
 import asyncio
 from struct import unpack, pack
 from lib.parseFlightData import parseFlightData
-from lib import YSchat, YSplayer, YSendFlight, YSundead, YSviaversion
+from lib import YSchat, YSplayer, YSendFlight, YSundead, YSviaversion, Player, Aircraft
 from lib.PacketManager.PacketManager import PacketManager
-from lib.PacketManager.packets import FSNETCMD_AIRPLANESTATE
+from lib.PacketManager.packets import *
 import logging
 from logging import critical, warning, info, debug
 from config import *
@@ -27,150 +27,199 @@ info("Lisenced under GPLv3")
 
 # Handle client connections
 async def handle_client(client_reader, client_writer):
-    player = YSplayer.Player("username", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "0.0.0.0",
-                -1, -1, -1, -1, 0, client_writer)
+    message_to_client = []
+    message_to_server = []
+    player = Player.Player(message_to_server, message_to_client) #Initialise the player.
+    
+
     try:
         # Connect to the actual server
         server_reader, server_writer = await asyncio.open_connection(SERVER_HOST, SERVER_PORT)
         peername = client_writer.get_extra_info('peername')
         if peername:
             ipAddr, clientPort = peername
+            player.set_ip(ipAddr)
+
             debug("Player object initiated")
 
         async def forward(reader, writer, direction, player=player):
+
             while True:
                 try:
-                    header = await reader.readexactly(4)  # Ensures we always get 4 bytes
-                    if not header:
-                        break  # Connection closed
+                    #Test if there are any unsent messages to the client or server from other processes.
+                    if len(message_to_client) > 0:
+                        client_writer.write(message_to_client.pop(0))
+                        await client_writer.drain()
+                    if len(message_to_server) > 0:
+                        server_writer.write(message_to_server.pop(0))
+                        await server_writer.drain()
 
-                    length = unpack("I", header)[0]
+                    if not reader.at_eof(): # Connection closed
+                        header = await reader.readexactly(4)  # Ensures we always get 4 bytes
+                        if not header:
+                            break  # Connection closed
 
-                    packet = await reader.read(length)
+                        length = unpack("I", header)[0]
 
-                    if not packet:
-                        break
+                        packet = await reader.read(length)
 
-                    data = header + packet
+                        if not packet:
+                            break
 
-                    if direction == "client_to_server":
-                        try:
-                            packet_type = PacketManager().get_packet_type(data)
-                            if packet_type == "FSNETCMD_AIRPLANESTATE":
-                                life = FSNETCMD_AIRPLANESTATE.get_life(data)
-                                if player.life == -1: #Uninitialised
-                                    player.life = life
-                                elif life > player.life:
-                                    cheatingMsg = YSchat.message(f"{HEALTH_HACK_MESSAGE} by {player.username}")
-                                    writer.write(cheatingMsg)
-                                    await writer.drain()
-                                player.life = life
+                        data = header + packet
+                        packet_type = PacketManager().get_packet_type(packet)
+                        if direction == "client_to_server":
+                            try:
+                                
+                                if packet_type == "FSNETCMD_LOGON":
+                                    player.login(FSNETCMD_LOGON(packet))
+                                
+                                
 
-                            length, packet_type = unpack("<I I", data[:8])
-                            debug("C2S" + str(packet_type))
-                            debug(data)
-                            if packet_type == 11:  # Flight data packet
-                                    playerData = parseFlightData(data)
-                                    player.playerId = playerData[1]
-                                    player.x = playerData[2]
-                                    player.y = playerData[3]
-                                    player.z = playerData[4]
-                                    player.throttle = playerData[22]
-                                    player.aam = playerData[18]
-                                    player.agm = playerData[19]
-                                    player.gunAmmo = playerData[16]
-                                    player.rktAmmo = playerData[17]
-                                    player.fuel = playerData[12]
-                                    player.gValue = playerData[28]
-                                    debug(player)
+                                
 
-                                    # Check if health increased
-                                    if player.life == -1:
-                                        player.life = playerData[21]
+                                if packet_type == "FSNETCMD_AIRPLANESTATE":
+                                    packet = player.aircraft.add_state(FSNETCMD_AIRPLANESTATE(packet))
+                                    if packet.flags['firing']:
+                                        bomb_drop = FSNETCMD_MISSILELAUNCH.drop_bombs(player.aircraft)
+                                        message_to_server.append(bomb_drop)
+                                        message_to_client.append(bomb_drop)
 
-                                    elif playerData[21] > player.life:
+                                    prev_life = player.aircraft.prev_life
+                                    if player.aircraft.life == -1: #Uninitialised
+                                        player.aircraft.life = prev_life
+                                    elif prev_life > player.aircraft.life:
                                         cheatingMsg = YSchat.message(f"{HEALTH_HACK_MESSAGE} by {player.username}")
                                         writer.write(cheatingMsg)
                                         await writer.drain()
+                                    player.aircraft.life = prev_life
+                                
+                                elif packet_type == "FSNETCMD_UNJOIN":
+                                    player.aircraft.reset()
+                                
+                                elif packet_type == "FSNETCMD_MISSILELAUNCH":
+                                    print(packet)
 
-                                    player.life = playerData[21]
+                                length, packet_type = unpack("<I I", data[:8])
+                                debug("C2S" + str(packet_type))
+                                debug(data)
+                                # if packet_type == 11:  # Flight data packet
+                                #         playerData = parseFlightData(data)
+                                #         player.playerId = playerData[1]
+                                #         player.x = playerData[2]
+                                #         player.y = playerData[3]
+                                #         player.z = playerData[4]
+                                #         player.throttle = playerData[22]
+                                #         player.aam = playerData[18]
+                                #         player.agm = playerData[19]
+                                #         player.gunAmmo = playerData[16]
+                                #         player.rktAmmo = playerData[17]
+                                #         player.fuel = playerData[12]
+                                #         player.gValue = playerData[28]
+                                #         debug(player)
 
-                                    if player.life < SMOKE_LIFE and SMOKE_PLANE :
-                                        targetWriter = player.streamWriterObject
-                                        if not player.warningSent:
-                                            warningMsg = YSchat.message(f"Your engine has been damaged! You can't turn on afterburner")
-                                            debug(f"Sending warning to {player.username}")
-                                            targetWriter.write(warningMsg)
-                                            await targetWriter.drain()
-                                            player.warningSent = True
-                                        # add smoke
-                                        # assuming packet version 5
-                                        # TODO : Make it dynamic for every pack version
-                                        # Since broken aircrafts will fly at < 400kts
-                                        # version 5 packets will do fine
-                                        data = data[0:60] + pack("h", -254) + data[62:]
-                                        writer.write(YSundead.smokedPlane(player.playerId))
-                                        await writer.drain()
+                                #         # Check if health increased
+                                #         if player.life == -1:
+                                #             player.life = playerData[21]
 
-                                    if abs(player.gValue) > G_LIM and player.gValue < 23:
-                                        deathMsg = YSchat.message(f"{player.username}'s G-Force exceeded the limit, gValue = {player.gValue}!")
-                                        endPacket = YSendFlight.endFlight(player.playerId)
-                                        writer.write(deathMsg)
-                                        writer.write(endPacket)
-                                        await writer.drain()
+                                #         elif playerData[21] > player.life:
+                                #             cheatingMsg = YSchat.message(f"{HEALTH_HACK_MESSAGE} by {player.username}")
+                                #             writer.write(cheatingMsg)
+                                #             await writer.drain()
 
-                            elif packet_type == 1: # Connection Request
-                                extracted = unpack("II16cI", data)
-                                # username = (b''.join(unpack("II16cI", data)[2:16])).decode('ascii').strip('\x00')
-                                username = b''.join(extracted[2:16]).decode('ascii').strip('\x00')
-                                version = extracted[-1]
-                                info(f"Connection request by {username} : {ipAddr}; YSFVERSION = {version}")
-                                player.username = username
-                                player.ip = ipAddr
-                                debug("Player object fixed!")
-                                debug(player)
-                                # targetWriter = player.streamWriterObject
-                                # targetWriter.write(b'\x04\x00\x00\x00\x10\x00\x00\x00')
-                                print("16 packet sent!")
-                                # await targetWriter.drain()
-                                if version != YSF_VERSION and VIA_VERSION:
-                                    info(f"ViaVersion enabled : Porting {username} from {YSF_VERSION} to {version}")
-                                    targetWriter = player.streamWriterObject
-                                    targetWriter.write(YSchat.message(f"Porting you to YSFlight {YSF_VERSION}, This is currently Experimental"))
-                                    targetWriter.write(YSchat.message(f"Please report any bugs to the server admin or join with the correct version"))
-                                    await targetWriter.drain()
-                                    data = YSviaversion.genViaVersion(username, YSF_VERSION)
+                                #         player.life = playerData[21]
 
-                            elif packet_type == 12: # End Flight
-                                    player.playerId = 0
-                                    player.life = -1
-                                    player.warningSent = False
-                                    debug("Health resseted to -1")
+                                #         if player.life < SMOKE_LIFE and SMOKE_PLANE :
+                                #             #TODO: Rework this with AIRCMD to remove AB, smoke packet can still be implemented.
+                                #             #However will need to provide the aircraft with some smoke.
+                                #             targetWriter = player.streamWriterObject
+                                #             if not player.warningSent:
+                                #                 warningMsg = YSchat.message(f"Your engine has been damaged! You can't turn on afterburner")
+                                #                 debug(f"Sending warning to {player.username}")
+                                #                 targetWriter.write(warningMsg)
+                                #                 await targetWriter.drain()
+                                #                 player.warningSent = True
+                                #             # add smoke
+                                #             # assuming packet version 5
+                                #             # TODO : Make it dynamic for every pack version
+                                #             # Since broken aircrafts will fly at < 400kts
+                                #             # version 5 packets will do fine
+                                #             data = data[0:60] + pack("h", -254) + data[62:]
+                                #             writer.write(YSundead.smokedPlane(player.playerId))
+                                #             await writer.drain()
 
-                            elif packet_type == 36: # Weapon config
-                                # here we patch the packet to have smoke forcefully
-                                # This part also is for regen, so we disable cheat detection for health
-                                player.life = -1
-                            elif packet_type == 44:
-                                # We drop the packets from YSFlight and use it for ourselves
-                                debug("Packet verification unimplemented!")
-                                continue
+                                #         if abs(player.gValue) > G_LIM and player.gValue < 23:
+                                #             deathMsg = YSchat.message(f"{player.username}'s G-Force exceeded the limit, gValue = {player.gValue}!")
+                                #             endPacket = YSendFlight.endFlight(player.playerId)
+                                #             writer.write(deathMsg)
+                                #             writer.write(endPacket)
+                                #             await writer.drain()
 
-                        except Exception as e:
-                            warning(f"Error parsing flight data: {e}")
-                    else :
-                        length, packet_type = unpack("<I I", data[:8])
-                        debug("S2C" + str(packet_type))
-                        debug(data)
-                        if packet_type == 36:
-                            # print("S2C ", str(data))
-                            pass
+                                # elif packet_type == 1: # Connection Request
+                                #     extracted = unpack("II16cI", data)
+                                #     # username = (b''.join(unpack("II16cI", data)[2:16])).decode('ascii').strip('\x00')
+                                #     username = b''.join(extracted[2:16]).decode('ascii').strip('\x00')
+                                #     version = extracted[-1]
+                                #     info(f"Connection request by {username} : {ipAddr}; YSFVERSION = {version}")
+                                #     player.username = username
+                                #     player.ip = ipAddr
+                                #     debug("Player object fixed!")
+                                #     debug(player)
+                                #     # targetWriter = player.streamWriterObject
+                                #     # targetWriter.write(b'\x04\x00\x00\x00\x10\x00\x00\x00')
+                                #     print("16 packet sent!")
+                                #     # await targetWriter.drain()
+                                #     if version != YSF_VERSION and VIA_VERSION:
+                                #         info(f"ViaVersion enabled : Porting {username} from {YSF_VERSION} to {version}")
+                                #         targetWriter = player.streamWriterObject
+                                #         targetWriter.write(YSchat.message(f"Porting you to YSFlight {YSF_VERSION}, This is currently Experimental"))
+                                #         targetWriter.write(YSchat.message(f"Please report any bugs to the server admin or join with the correct version"))
+                                #         await targetWriter.drain()
+                                #         data = YSviaversion.genViaVersion(username, YSF_VERSION)
+
+                                # elif packet_type == 12: # End Flight
+                                #         player.playerId = 0
+                                #         player.life = -1
+                                #         player.warningSent = False
+                                #         debug("Health resseted to -1")
+
+                                # elif packet_type == 36: # Weapon config
+                                #     # here we patch the packet to have smoke forcefully
+                                #     # This part also is for regen, so we disable cheat detection for health
+                                #     player.life = -1
+                                # elif packet_type == 44:
+                                #     # We drop the packets from YSFlight and use it for ourselves
+                                #     debug("Packet verification unimplemented!")
+                                #     continue
+
+                            except Exception as e:
+                                warning(f"Error parsing flight data: {e}", exc_info=True)
+                                
+                        else :
+                            #Coming from the server to the client
+                            if packet_type == "FSNETCMD_ADDOBJECT":
+                                    if player.check_add_object(FSNETCMD_ADDOBJECT(packet)):
+                                        info(f"{player.username} has spawned an aircraft")
+                                        addSmoke = FSNETCMD_WEAPONCONFIG.addSmoke(player.aircraft.id)
+                                        message_to_server.append(addSmoke)
+                            
+                            elif packet_type == "FSNETCMD_AIRCMD":
+                                #Check the configs against the current aircraft
+                                command = FSNETCMD_AIRCMD(packet)
+                                player.aircraft.check_command(command)
+                            
+                            length, packet_type = unpack("<I I", data[:8])
+                            debug("S2C" + str(packet_type))
+                            debug(data)
+                            if packet_type == 36:
+                                # print("S2C ", str(data))
+                                pass
 
 
 
-                    # Forward the packet to the other endpoint
-                    writer.write(data)
-                    await writer.drain()
+                        # Forward the packet to the other endpoint
+                        writer.write(data)
+                        await writer.drain()
                 except (asyncio.CancelledError, ConnectionResetError, BrokenPipeError) as e:
                     if e == BrokenPipeError:
                         info(f"Connection closed by {player.username} : {player.ip}")

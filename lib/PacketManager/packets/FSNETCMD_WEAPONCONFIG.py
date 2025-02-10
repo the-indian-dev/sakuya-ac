@@ -52,4 +52,4 @@ class FSNETCMD_WEAPONCONFIG:
 
     @staticmethod
     def addSmoke(aircraft_id:int):
-        return FSNETCMD_WEAPONCONFIG.encode(aircraft_id, {32:[66,66,66]}, True)
+        return FSNETCMD_WEAPONCONFIG.encode(aircraft_id, {32:[66,66,66],33:[66,66,66],34:[66,66,66]}, True)
