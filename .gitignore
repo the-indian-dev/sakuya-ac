@@ -3,4 +3,3 @@ __pycache__/
 lib/__pycache__/
 venv/
 flightPacketParser.ipynb
-config.py

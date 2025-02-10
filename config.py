@@ -12,6 +12,12 @@ SERVER_PORT = 7914 # Please put where the normal YSFlight server is running
 # Port for the proxy server
 PROXY_PORT = 7915
 
+# Welcome Message to the playe
+# For formatting use {username}
+# eg. "Welcome {username} to the server!"
+# > Welcome Sakuya to the server!
+WELCOME_MESSAGE = "Welcome {username} to the server!"
+
 # Native YSFlight Server
 # Please select the YSFlight server version for the
 # local ysflight server

@@ -29,8 +29,8 @@ info("Lisenced under GPLv3")
 async def handle_client(client_reader, client_writer):
     message_to_client = []
     message_to_server = []
-    player = Player.Player(message_to_server, message_to_client) #Initialise the player.
-    
+    player = Player.Player(message_to_server, message_to_client, client_writer) #Initialise the player.
+
 
     try:
         # Connect to the actual server
@@ -69,40 +69,68 @@ async def handle_client(client_reader, client_writer):
                         data = header + packet
                         packet_type = PacketManager().get_packet_type(packet)
                         if direction == "client_to_server":
+                            debug("C2S" + str(packet_type))
+                            debug(data)
+
                             try:
-                                
+
                                 if packet_type == "FSNETCMD_LOGON":
                                     player.login(FSNETCMD_LOGON(packet))
-                                
-                                
 
-                                
+                                elif packet_type == "FSNETCMD_AIRPLANESTATE":
+                                    # print("Damaging!")
+                                    # damageData = FSNETCMD_GETDAMAGE.encode(player.aircraft.id, 1, 1, player.aircraft.id, 1, 11, 0, True)
+                                    # print("custom", damageData)
+                                    # message_to_server.append(damageData)
+                                    # message_to_client.append(damageData)
 
-                                if packet_type == "FSNETCMD_AIRPLANESTATE":
                                     packet = player.aircraft.add_state(FSNETCMD_AIRPLANESTATE(packet))
+
+                                    """
+                                    Just for fun!
                                     if packet.flags['firing']:
                                         bomb_drop = FSNETCMD_MISSILELAUNCH.drop_bombs(player.aircraft)
                                         message_to_server.append(bomb_drop)
                                         message_to_client.append(bomb_drop)
+                                    """
+                                    if player.aircraft.last_packet.g_value > G_LIM:
+                                        debug("G Value exceeded : ", player.aircraft.last_packet.g_value)
+                                        # We make a packet which damages the aircraft using the same pilot ID, using a gun
+                                        damageData = FSNETCMD_GETDAMAGE.encode(player.aircraft.id, 1, 1, player.aircraft.id, 1, 11, 0, True)
+                                        warnMsg = YSchat.message(f"You are exceeding the G Limit for the aircraft!, gValue = {player.aircraft.last_packet.g_value}!")
+                                        message_to_client.append(damageData)
+                                        message_to_client.append(warnMsg)
 
                                     prev_life = player.aircraft.prev_life
                                     if player.aircraft.life == -1: #Uninitialised
                                         player.aircraft.life = prev_life
+
                                     elif prev_life > player.aircraft.life:
                                         cheatingMsg = YSchat.message(f"{HEALTH_HACK_MESSAGE} by {player.username}")
                                         writer.write(cheatingMsg)
                                         await writer.drain()
+
+                                    elif player.aircraft.life < SMOKE_LIFE and SMOKE_PLANE:
+
+                                        if not player.aircraft.damage_engine_warn_sent:
+                                            warningMsg = YSchat.message(f"Your engine has been damaged! You can't turn on afterburner")
+                                            debug(f"Sending warning to {player.username}")
+                                            message_to_client.append(warningMsg)
+                                            player.aircraft.damage_engine_warn_sent = True
+
                                     player.aircraft.life = prev_life
-                                
+
                                 elif packet_type == "FSNETCMD_UNJOIN":
                                     player.aircraft.reset()
-                                
-                                elif packet_type == "FSNETCMD_MISSILELAUNCH":
-                                    print(packet)
 
-                                length, packet_type = unpack("<I I", data[:8])
-                                debug("C2S" + str(packet_type))
-                                debug(data)
+                                elif packet_type == "FSNETCMD_AIRCMD":
+                                    h = FSNETCMD_AIRCMD(packet)
+                                    print(h.decode)
+
+                                # elif packet_type == "FSNETCMD_GETDAMAGE":
+                                #    h = FSNETCMD_GETDAMAGE(packet, True)
+                                #    print(h)
+
                                 # if packet_type == 11:  # Flight data packet
                                 #         playerData = parseFlightData(data)
                                 #         player.playerId = playerData[1]
@@ -194,28 +222,26 @@ async def handle_client(client_reader, client_writer):
 
                             except Exception as e:
                                 warning(f"Error parsing flight data: {e}", exc_info=True)
-                                
+
                         else :
+                            debug("S2C" + str(packet_type))
+                            debug(data)
+
                             #Coming from the server to the client
                             if packet_type == "FSNETCMD_ADDOBJECT":
                                     if player.check_add_object(FSNETCMD_ADDOBJECT(packet)):
                                         info(f"{player.username} has spawned an aircraft")
                                         addSmoke = FSNETCMD_WEAPONCONFIG.addSmoke(player.aircraft.id)
                                         message_to_server.append(addSmoke)
-                            
+
                             elif packet_type == "FSNETCMD_AIRCMD":
                                 #Check the configs against the current aircraft
                                 command = FSNETCMD_AIRCMD(packet)
                                 player.aircraft.check_command(command)
-                            
-                            length, packet_type = unpack("<I I", data[:8])
-                            debug("S2C" + str(packet_type))
-                            debug(data)
-                            if packet_type == 36:
-                                # print("S2C ", str(data))
-                                pass
 
-
+                            elif packet_type == "FSNETCMD_PREPARESIMULATION":
+                                welcomeMsg = YSchat.message(WELCOME_MESSAGE.format(username=player.username))
+                                message_to_server.append(welcomeMsg)
 
                         # Forward the packet to the other endpoint
                         writer.write(data)

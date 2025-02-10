@@ -40,7 +40,7 @@ class FSNETCMD_AIRCMD: #30
         if with_size:
             return pack("I",len(buffer))+buffer
         return buffer
-    
+
     @staticmethod
     def setPayload(aircraft_id:int, payload:int, units:str='kg', with_size:bool=False):
         """
@@ -51,3 +51,6 @@ class FSNETCMD_AIRCMD: #30
         payload = str(payload)
         message = f"INITLOAD {payload} {units}"
         return FSNETCMD_AIRCMD.encode(aircraft_id, message, with_size)
+
+    def __str__(self):
+        return "Aircraft ID : {self.aircraft_id}; Message : {self.message}; Command : {self.command}"

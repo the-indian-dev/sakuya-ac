@@ -1,6 +1,7 @@
 from struct import pack, unpack
 from math import pi
 import math
+from logging import debug
 
 class FSNETCMD_AIRPLANESTATE: #11
     """
@@ -73,8 +74,8 @@ class FSNETCMD_AIRPLANESTATE: #11
             # self.atti = list(unpack("HHH", self.buffer[26:32]))
             self.atti = list(map(lambda x: x * (pi / 32768.0),
                                  unpack("HHH", self.buffer[26:32])))
-            print(self.atti)
-            
+            debug(self.atti)
+
             self.velocity = list(map(lambda x: x/10,
                                  unpack("HHH", self.buffer[32:38])))
             self.atti_velocity = list(map(lambda x: x * (pi / 32768.0),
@@ -101,12 +102,11 @@ class FSNETCMD_AIRPLANESTATE: #11
             self.flags["firing"] = bool(flags &8)
             self.flags["smoke"] = 0
             if flags & 2:
-                
-                self.flags["smoke"] = (flags >> 8) & 255 # bitshift 8 to the right, 
+                self.flags["smoke"] = (flags >> 8) & 255 # bitshift 8 to the right,
                 #then mask with 255
                 if self.flags["smoke"] == 0:
                     self.flags["smoke"] = 255 # Need to review what this actuall does!
-            
+
             if flags & 16:
                 self.flags["beacon"] = True
             if flags & 32:
@@ -140,10 +140,10 @@ class FSNETCMD_AIRPLANESTATE: #11
             self.atti = list(map(lambda x: x * (pi / 32768.0),
                         unpack("HHH", self.buffer[28:34])))
 
-            
+
             self.velocity = list(map(lambda x: x/10,
                                     unpack("HHH", self.buffer[34:40])))
-            
+
             self.atti_velocity = list(map(lambda x: x / (pi / 32768.0),
                                           unpack("HHH", self.buffer[40:46])))
             self.g_value = unpack("h", self.buffer[46:48])[0]/100.0
@@ -199,13 +199,13 @@ class FSNETCMD_AIRPLANESTATE: #11
             return pack('I',len(packet)) + packet
         else:
             flag = unpack('h',self.buffer[74:75])[0]
-        
+
             flag &= ~((255<<8)|2)
             flag |= (255<<8) | 2
-            print(flag)
+            debug(flag)
             packet = self.buffer[:74] + pack('h',flag) + self.buffer[76:]
             return pack('I',len(packet)) + packet
-    
+
     def stop_firing(self):
         if self.packet_version == 4 or self.packet_version == 5:
             flag = unpack('h',self.buffer[56:58])[0]

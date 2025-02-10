@@ -16,6 +16,13 @@ Sakuya AC and G Limiter at 20. It also has all the experimental options turned o
 
 ---
 
+## Contributors
+
+- Skipper
+- Biry (Emotional Support)
+
+---
+
 ## **Features**
 - Intercepts and parses network packets to monitor gameplay.
 - Adds features like G Limiter and Smoke Emission on Death.

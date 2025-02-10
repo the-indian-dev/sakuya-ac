@@ -19,8 +19,8 @@ class FSNETCMD_GETDAMAGE: #22
 
     def decode(self):
         variables = unpack("IIIIIHHH", self.buffer[0:26])
-        self.victim_id = variables[2]
         self.victim_type = variables[1]
+        self.victim_id = variables[2]
         self.attacker_type = variables[3]
         self.attacker_id = variables[4]
         self.damage = variables[5]
@@ -28,7 +28,7 @@ class FSNETCMD_GETDAMAGE: #22
         self.weapon_type = variables[7]
         if self.weapon_type in FSWEAPON_DICT:
             self.weapon_type = FSWEAPON_DICT[self.weapon_type]
-        
+
 
     @staticmethod
     def encode(victim_id, victim_type, attacker_type, attacker_id, damage, died_of,
@@ -36,8 +36,13 @@ class FSNETCMD_GETDAMAGE: #22
         if weapon_type in FSWEAPON_DICT and not isinstance(weapon_type,int):
             weapon_type = list(FSWEAPON_DICT.keys())[list(FSWEAPON_DICT.values()).index(weapon_type)]
 
-        buffer = pack("I",22)+pack("IIIIIHHH", victim_id, victim_type, attacker_type,
-                                   attacker_id, damage, died_of, weapon_type)
+        buffer = pack("I",22)+pack("4I3H", victim_type, victim_id, attacker_type,attacker_id,
+                                damage, died_of, weapon_type)
         if with_size:
             return pack("I", len(buffer))+buffer
         return buffer
+
+    def __str__(self):
+        return f"Victim ID : {self.victim_id}; Victim Type : {self.victim_type}; \
+                Attacker Type : {self.attacker_type}; Attacker ID : {self.attacker_id} \
+                Damage : {self.damage}; Died Of : {self.died_of}; weapon : {self.weapon_type}"

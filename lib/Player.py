@@ -3,13 +3,14 @@ from lib.PacketManager.packets import FSNETCMD_LOGON, FSNETCMD_ADDOBJECT
 class Player:
     """
     A player class, this will hold info about the client, including which aircraft they're flying"""
-    def __init__(self, server_messages, client_messages):
+    def __init__(self, server_messages, client_messages, streamWriterObject):
 
         self.username = ""
         self.alias = ""
         self.aircraft = Aircraft()
         self.version = 0
         self.ip = ""
+        self.streamWriterObject = streamWriterObject
 
     def set_aircraft(self, aircraft:Aircraft):
         self.aircraft = aircraft
