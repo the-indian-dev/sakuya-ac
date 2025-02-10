@@ -69,6 +69,7 @@ class Aircraft:
 
     def add_state(self, packet:FSNETCMD_AIRPLANESTATE):
         """Adds the state of the aircraft"""
+
         if packet.player_id != self.id:
             return None
         self.prev_life = self.life
@@ -79,9 +80,16 @@ class Aircraft:
         return packet
 
     def check_command(self,command:FSNETCMD_AIRCMD):
-        """Checks the command"""
+        """Checks the command, and adds it to the aircraft"""
         if command.aircraft_id != self.id:
             return
         if command.command:
             self.initial_config[command.command[0]] = command.command[1]
         debug(f"Command: {command.command}")
+
+    def set_afterburner(self, enabled:bool):
+        """If the afterburner is avaialble on the aircraft, will send a command
+        to toggle it."""
+        if self.get_initial_config_value("AFTBURNR") == "TRUE":
+            return FSNETCMD_AIRCMD.set_afterburner(self.id,enabled, True)
+        return None

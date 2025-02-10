@@ -42,7 +42,7 @@ class FSNETCMD_AIRCMD: #30
         return buffer
 
     @staticmethod
-    def setPayload(aircraft_id:int, payload:int, units:str='kg', with_size:bool=False):
+    def set_payload(aircraft_id:int, payload:int, units:str='kg', with_size:bool=False):
         """
         This will set the payload of the aircraft, useful if you want to
         load or unload passengers/cargo - for YSRP I use this to load and unload
@@ -52,5 +52,28 @@ class FSNETCMD_AIRCMD: #30
         message = f"INITLOAD {payload} {units}"
         return FSNETCMD_AIRCMD.encode(aircraft_id, message, with_size)
 
+    @staticmethod
+    def set_command(aircraft_id:int, command:str, value:int, with_size:bool=False):
+        """
+        This will set the command of the aircraft, useful if you want to
+        set the engine power, fuel, etc.
+        """
+        if command in AIRCMD_KEYWORDS:
+            command = AIRCMD_KEYWORDS.index(command)
+
+        message = f"*{command} {value}"
+        return FSNETCMD_AIRCMD.encode(aircraft_id, message, with_size)
+
+    @staticmethod
+    def set_afterburner(aircarft_id:int, enabled:int, with_size:bool=False):
+        """
+        This will set the afterburner of the aircraft, useful if you want to
+        enable or disable the afterburner.
+        """
+
+        command = "AFTBURNR"
+        value = str(enabled).upper()
+        return FSNETCMD_AIRCMD.set_command(aircarft_id, command, value, with_size)
+
     def __str__(self):
-        return "Aircraft ID : {self.aircraft_id}; Message : {self.message}; Command : {self.command}"
+        return f"Aircraft ID : {self.aircraft_id}; Message : {self.message}; Command : {self.command}"
