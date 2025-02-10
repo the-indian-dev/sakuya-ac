@@ -8,9 +8,9 @@ LOGGING_LEVEL = INFO
 # Server Configuration
 # Replace with the YSFlight server address
 SERVER_HOST = "127.0.0.1"
-SERVER_PORT = 7915 # Please put where the normal YSFlight server is running
+SERVER_PORT = 7914 # Please put where the normal YSFlight server is running
 # Port for the proxy server
-PROXY_PORT = 9000
+PROXY_PORT = 7915
 
 # Native YSFlight Server
 # Please select the YSFlight server version for the
@@ -44,3 +44,12 @@ SMOKE_PLANE = True
 # Planes smoking minimum life
 
 SMOKE_LIFE = 5
+
+
+#Discord chat integration
+#Make sure to enable read message privilege for the bot.
+
+DISCORD_TOKEN = "YourDiscordBotTOKEN"
+
+# Channel ID for the chat
+CHANNEL_ID = 0 # Channel ID, as an integer
