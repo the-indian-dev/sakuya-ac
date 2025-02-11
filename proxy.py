@@ -86,13 +86,6 @@ async def handle_client(client_reader, client_writer):
 
                                     packet = player.aircraft.add_state(FSNETCMD_AIRPLANESTATE(packet))
 
-                                    """
-                                    Just for fun!
-                                    if packet.flags['firing']:
-                                        bomb_drop = FSNETCMD_MISSILELAUNCH.drop_bombs(player.aircraft)
-                                        message_to_server.append(bomb_drop)
-                                        message_to_client.append(bomb_drop)
-                                    """
                                     if player.aircraft.last_packet.g_value > G_LIM:
                                         debug("G Value exceeded : ", player.aircraft.last_packet.g_value)
                                         # We make a packet which damages the aircraft using the same pilot ID, using a gun
@@ -107,8 +100,7 @@ async def handle_client(client_reader, client_writer):
 
                                     elif prev_life > player.aircraft.life:
                                         cheatingMsg = YSchat.message(f"{HEALTH_HACK_MESSAGE} by {player.username}")
-                                        writer.write(cheatingMsg)
-                                        await writer.drain()
+                                        message_to_client.append(cheatingMsg)
 
                                     elif player.aircraft.life < SMOKE_LIFE and SMOKE_PLANE:
 
@@ -117,15 +109,13 @@ async def handle_client(client_reader, client_writer):
                                             debug(f"Sending warning to {player.username}")
                                             message_to_client.append(warningMsg)
                                             player.aircraft.damage_engine_warn_sent = True
+                                            message_to_client.append(FSNETCMD_AIRCMD.set_afterburner(player.aircraft.id, False, True))
 
                                     player.aircraft.life = prev_life
 
                                 elif packet_type == "FSNETCMD_UNJOIN":
                                     player.aircraft.reset()
 
-                                elif packet_type == "FSNETCMD_AIRCMD":
-                                    h = FSNETCMD_AIRCMD(packet)
-                                    print(h.decode)
 
                                 # elif packet_type == "FSNETCMD_GETDAMAGE":
                                 #    h = FSNETCMD_GETDAMAGE(packet, True)
@@ -219,7 +209,6 @@ async def handle_client(client_reader, client_writer):
                                 #     # We drop the packets from YSFlight and use it for ourselves
                                 #     debug("Packet verification unimplemented!")
                                 #     continue
-
                             except Exception as e:
                                 warning(f"Error parsing flight data: {e}", exc_info=True)
 
@@ -236,6 +225,7 @@ async def handle_client(client_reader, client_writer):
 
                             elif packet_type == "FSNETCMD_AIRCMD":
                                 #Check the configs against the current aircraft
+                                #These come server to client, not the other way around.
                                 command = FSNETCMD_AIRCMD(packet)
                                 player.aircraft.check_command(command)
 
