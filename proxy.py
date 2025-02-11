@@ -283,7 +283,6 @@ async def handle_client(client_reader, client_writer):
                             elif packet_type == "FSNETCMD_PREPARESIMULATION":
                                 welcomeMsg = YSchat.message(WELCOME_MESSAGE.format(username=player.username))
                                 message_to_server.append(welcomeMsg)
-                                print("Here!")
                                 if DISCORD_ENABLED:
                                     asyncio.create_task(discord_send_message(CHANNEL_ID, f"{player.username} has joined the server!"))
 

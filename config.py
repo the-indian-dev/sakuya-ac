@@ -61,11 +61,11 @@ SMOKE_LIFE = 5
 # On Modern Linux distros you may need to create a virtual environment to install
 # the dependencies
 
-DISCORD_ENABLED = False
+DISCORD_ENABLED = True
 
 # Make sure to enable read message intent for the bot.
 
-DISCORD_TOKEN = "YOUR_DISCORD_BOT_TOKEN"
+DISCORD_TOKEN = "DISCORD_BOT_TOKEN"
 
 # Channel ID for the chat
-CHANNEL_ID = 0
+CHANNEL_ID = 0 # Channel ID, as an integer

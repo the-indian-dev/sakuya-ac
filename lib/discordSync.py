@@ -31,21 +31,22 @@ async def discord_send_message(channel_id, content):
 
 # Function to fetch messages from a specific Discord channel
 async def discord_fetch_messages(channel_id, last_message_id=None):
+    debug("Fetching messages...")  # Debugging
     url = f'{BASE_URL}/channels/{channel_id}/messages'
-    params = {
-        'limit': 1  # Fetch the most recent message
-    }
+    params = {'limit': 1}
     if last_message_id:
-        params['after'] = last_message_id  # Fetch only new messages
+        params['after'] = last_message_id
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=HEADERS, params=params) as response:
             if response.status == 200:
                 messages = await response.json()
-                return messages  # Return the list of messages
+                debug(f"Fetched messages: {messages}")  # Debugging
+                return messages
             else:
-                print(f'Failed to fetch messages. Status Code: {response.status} | {await response.text()}')
+                print(f"Failed to fetch messages: {response.status} | {await response.text()}")
                 return []
+
 
 # Callback function when a new message is detected
 def on_new_message(message):
@@ -56,7 +57,7 @@ def on_new_message(message):
 
     username = author['username']
     content = message['content']
-    debug(f'New Discord message from {username}: {content}')
+    print(f'New Discord message from {username}: {content}')
 
 # Asynchronous function to monitor a Discord channel for new messages
 async def monitor_channel(channel_id, playerList:list):
@@ -69,11 +70,12 @@ async def monitor_channel(channel_id, playerList:list):
             message = messages[0]
             if messages:
                 message = messages[0]
-                if last_message_id is None or message['id'] > last_message_id and not message['author'].get("bot"):  # Ensure only newer messages are processed and bots are ignored
+                if last_message_id is None or message['id'] > last_message_id:  # Ensure only newer messages are processed
                     last_message_id = message['id']
-                    encoded_msg = txtMsgr.encode(f"[Discord] {message['author']['username']}: {message['content']}", True)
-                    for player in playerList:
-                        player.streamWriterObject.write(encoded_msg)
-                        await player.streamWriterObject.drain()
-                    on_new_message(message)
+                    if not message['author'].get('bot'): # Skip messages from bot
+                        encoded_msg = txtMsgr.encode(f"[Discord] {message['author']['username']}: {message['content']}", True)
+                        for player in playerList:
+                            player.streamWriterObject.write(encoded_msg)
+                            await player.streamWriterObject.drain()
+                        on_new_message(message)
         await asyncio.sleep(1)  # Poll every second (adjust as needed)
