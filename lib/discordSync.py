@@ -57,7 +57,7 @@ def on_new_message(message):
 
     username = author['username']
     content = message['content']
-    print(f'New Discord message from {username}: {content}')
+    debug(f'New Discord message from {username}: {content}')
 
 # Asynchronous function to monitor a Discord channel for new messages
 async def monitor_channel(channel_id, playerList:list):
