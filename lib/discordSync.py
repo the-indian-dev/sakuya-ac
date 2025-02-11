@@ -75,6 +75,9 @@ async def monitor_channel(channel_id, playerList:list):
                     if not message['author'].get('bot'): # Skip messages from bot
                         encoded_msg = txtMsgr.encode(f"[Discord] {message['author']['username']}: {message['content']}", True)
                         for player in playerList:
+                            if player.streamWriterObject.is_closing():
+                                playerList.remove(player)  # Remove disconnected players
+                                continue  # Skip this player
                             player.streamWriterObject.write(encoded_msg)
                             await player.streamWriterObject.drain()
                         on_new_message(message)
