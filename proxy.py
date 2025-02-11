@@ -12,11 +12,17 @@ from lib.PacketManager.packets import *
 import logging
 from logging import critical, warning, info, debug
 from config import *
+if DISCORD_ENABLED: from lib.discordSync import *
+import traceback
 
 # Configuration
 SERVER_HOST = SERVER_HOST
 SERVER_PORT = SERVER_PORT
 PROXY_PORT = PROXY_PORT
+
+# Hold all Connected Players
+
+CONNECTED_PLAYERS = []
 
 # ANSI escape codes for colors
 COLORS = {
@@ -60,7 +66,7 @@ async def handle_client(client_reader, client_writer):
         if peername:
             ipAddr, clientPort = peername
             player.set_ip(ipAddr)
-
+            CONNECTED_PLAYERS.append(player)
             debug("Player object initiated")
 
         async def forward(reader, writer, direction, player=player):
@@ -108,8 +114,8 @@ async def handle_client(client_reader, client_writer):
                                     player.login(FSNETCMD_LOGON(packet))
                                     if player.version != YSF_VERSION and VIA_VERSION:
                                         info(f"ViaVersion enabled : Porting {player.username} from {player.version} to {YSF_VERSION}")
-                                        message_to_server.append(YSchat.message(f"Porting you to YSFlight {YSF_VERSION}, This is currently Experimental"))
-                                        message_to_server.append(YSchat.message(f"Please report any bugs to the server admin or join with the correct version"))
+                                        message_to_client.append(YSchat.message(f"Porting you to YSFlight {YSF_VERSION}, This is currently Experimental"))
+                                        message_to_client.append(YSchat.message(f"Please report any bugs to the server admin or join with the correct version"))
                                         data = YSviaversion.genViaVersion(player.username, YSF_VERSION)
                                         writer.write(data)
                                         continue
@@ -154,6 +160,12 @@ async def handle_client(client_reader, client_writer):
                                     if player.aircraft.get_initial_config_value("AFTBURNR") == "TRUE": message_to_client.append(player.aircraft.set_afterburner(True))
                                     debug("Aircraft repaired!")
 
+                                elif packet_type == "FSNETCMD_TEXTMESSAGE":
+                                    msg = FSNETCMD_TEXTMESSAGE(packet)
+                                    finalMsg = (f"{player.username} : {msg.message}")
+                                    if DISCORD_ENABLED:
+                                        # Make it non blocking!
+                                        asyncio.create_task(discord_send_message(CHANNEL_ID, finalMsg))
 
                                 # elif packet_type == "FSNETCMD_GETDAMAGE":
                                 #    h = FSNETCMD_GETDAMAGE(packet, True)
@@ -249,6 +261,7 @@ async def handle_client(client_reader, client_writer):
                                 #     continue
                             except Exception as e:
                                 warning(f"Error parsing flight data: {e}", exc_info=True)
+                                traceback.print_exc()  # This will display the full traceback
 
                         else :
                             debug("S2C" + str(packet_type))
@@ -270,6 +283,9 @@ async def handle_client(client_reader, client_writer):
                             elif packet_type == "FSNETCMD_PREPARESIMULATION":
                                 welcomeMsg = YSchat.message(WELCOME_MESSAGE.format(username=player.username))
                                 message_to_server.append(welcomeMsg)
+                                print("Here!")
+                                if DISCORD_ENABLED:
+                                    asyncio.create_task(discord_send_message(CHANNEL_ID, f"{player.username} has joined the server!"))
 
                         # Forward the packet to the other endpoint
                         writer.write(data)
@@ -302,6 +318,8 @@ async def handle_client(client_reader, client_writer):
 async def start_proxy():
     server = await asyncio.start_server(handle_client, "0.0.0.0", PROXY_PORT)
     info(f"Proxy server listening on port {PROXY_PORT}")
+    if DISCORD_ENABLED:
+        await asyncio.create_task(monitor_channel(CHANNEL_ID, CONNECTED_PLAYERS))
     async with server:
         await server.serve_forever()
 

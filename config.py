@@ -52,10 +52,20 @@ SMOKE_PLANE = True
 SMOKE_LIFE = 5
 
 
-#Discord chat integration
-#Make sure to enable read message privilege for the bot.
+# Discord chat integration
+# ```bash
+# pip install -r requirements.txt
+# ```
+# to install dependencies required to run the discord chat integration
+#
+# On Modern Linux distros you may need to create a virtual environment to install
+# the dependencies
 
-DISCORD_TOKEN = "YourDiscordBotTOKEN"
+DISCORD_ENABLED = False
+
+# Make sure to enable read message intent for the bot.
+
+DISCORD_TOKEN = "YOUR_DISCORD_BOT_TOKEN"
 
 # Channel ID for the chat
-CHANNEL_ID = 0 # Channel ID, as an integer
+CHANNEL_ID = 0

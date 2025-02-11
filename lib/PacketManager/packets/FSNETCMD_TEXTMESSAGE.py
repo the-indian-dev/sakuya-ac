@@ -14,7 +14,7 @@ class FSNETCMD_TEXTMESSAGE: #32
         self.raw_message = self.buffer[12:].decode("utf-8").strip("\x00")
         match = re.match(r"^\(([^)]+)\)(.+)", self.raw_message)
         if match:
-            self.user. self.message = match.groups()
+            self.user, self.message = match.groups()
 
     @staticmethod
     def encode(message:str, with_size:bool=False):
