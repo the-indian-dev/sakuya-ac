@@ -1,5 +1,6 @@
 from struct import pack, unpack
 from .constants import AIRCMD_KEYWORDS
+from typing import Union # Make it backwards compatible for python 3.9
 
 class FSNETCMD_AIRCMD: #30
 
@@ -53,7 +54,7 @@ class FSNETCMD_AIRCMD: #30
         return FSNETCMD_AIRCMD.encode(aircraft_id, message, with_size)
 
     @staticmethod
-    def set_command(aircraft_id:int, command:str, value:int|str, with_size:bool=False):
+    def set_command(aircraft_id:int, command:str, value: Union[str, int], with_size:bool=False):
         """
         This will set the command of the aircraft, useful if you want to
         set the engine power, fuel, etc.
