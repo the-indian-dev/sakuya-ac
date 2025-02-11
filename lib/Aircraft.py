@@ -1,4 +1,5 @@
-from lib.PacketManager.packets import FSNETCMD_AIRPLANESTATE, FSNETCMD_AIRCMD
+from lib.PacketManager.packets import FSNETCMD_AIRPLANESTATE
+from lib.PacketManager.packets.FSNETCMD_AIRCMD import FSNETCMD_AIRCMD
 from logging import debug
 
 class Aircraft:
@@ -16,6 +17,7 @@ class Aircraft:
         self.id = -1
         self.last_packet = None
         self.damage_engine_warn_sent = False
+        self.just_repaired = False
 
     def reset(self):
         """Resets the aircraft"""
@@ -29,6 +31,7 @@ class Aircraft:
         self.id = -1
         self.last_packet = None
         self.damage_engine_warn_sent = False
+        self.just_repaired = False
 
     def set_position(self, position:list):
         """Sets the position of the aircraft from the Airplane state packet"""

@@ -299,3 +299,15 @@ class FSNETCMD_AIRPLANESTATE: #11
         if with_size:
             return pack("I",len(buffer))+buffer
         return buffer
+
+    def __str__(self):
+        return f"Player ID : {self.player_id}; Remote Time : {self.remote_time}; \
+                Position : {self.position}; Attitude : {self.atti}; Velocity : {self.velocity}; \
+                Attitude Velocity : {self.atti_velocity}; Smoke Oil : {self.smoke_oil}; Fuel : {self.fuel}; \
+                Payload : {self.payload}; Flight State : {self.flight_state}; VGW : {self.vgw}; \
+                Spoiler : {self.spoiler}; Landing Gear : {self.landing_gear}; Flap : {self.flap}; \
+                Brake : {self.brake}; Flags : {self.flags}; Gun Ammo : {self.gun_ammo}; \
+                Rocket Ammo : {self.rocket_ammo}; AAM : {self.aam}; AGM : {self.agm}; Bomb : {self.bomb}; \
+                Life : {self.life}; G Value : {self.g_value}; Throttle : {self.throttle}; Elev : {self.elev}; \
+                Ail : {self.ail}; Rud : {self.rud}; Trim : {self.trim}; Thrust Vector : {self.thrust_vector}; \
+                Bomb Bay Info : {self.bomb_bay_info}"

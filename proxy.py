@@ -12,18 +12,39 @@ from lib.PacketManager.packets import *
 import logging
 from logging import critical, warning, info, debug
 from config import *
-from time import sleep
 
 # Configuration
 SERVER_HOST = SERVER_HOST
 SERVER_PORT = SERVER_PORT
 PROXY_PORT = PROXY_PORT
-CONNECTED_PLAYERS = [] # List of connected players
+
+# ANSI escape codes for colors
+COLORS = {
+    "DEBUG": "\033[92m",  # Green
+    "INFO": "\033[94m",   # Blue
+    "WARNING": "\033[93m",  # Yellow
+    "ERROR": "\033[91m",  # Red
+    "CRITICAL": "\033[91;1m",  # Bold Red
+    "RESET": "\033[0m"    # Reset color
+}
+
+class ColoredFormatter(logging.Formatter):
+    def format(self, record):
+        log_color = COLORS.get(record.levelname, COLORS["RESET"])
+        reset = COLORS["RESET"]
+        log_message = f"{log_color}{record.levelname}: {record.getMessage()}{reset}"
+        return log_message
+
 logging.basicConfig(level=LOGGING_LEVEL)
 
+# Get the default handler and set the colored formatter
+handler = logging.getLogger().handlers[0]
+handler.setFormatter(ColoredFormatter("%(levelname)s: %(message)c"))
+
 info("Welcome to Sakuya AC")
-info("Perfect and Elegant Proxy for your Ysflight Server")
+info("Perfect and Elegant Proxy for your YSFlight Server")
 info("Lisenced under GPLv3")
+info("Press CTRL+C to stop the proxy")
 
 # Handle client connections
 async def handle_client(client_reader, client_writer):
@@ -55,7 +76,16 @@ async def handle_client(client_reader, client_writer):
                         await server_writer.drain()
 
                     if not reader.at_eof(): # Connection closed
-                        header = await reader.readexactly(4)  # Ensures we always get 4 bytes
+                        try:
+                            header = await reader.readexactly(4)  # Ensures we always get 4 bytes
+                        except asyncio.IncompleteReadError:
+                            break
+                        except ConnectionResetError:
+                            break
+                        except Exception as e:
+                            critical(f"Error reading header: {e}")
+                            break
+
                         if not header:
                             break  # Connection closed
 
@@ -76,17 +106,18 @@ async def handle_client(client_reader, client_writer):
 
                                 if packet_type == "FSNETCMD_LOGON":
                                     player.login(FSNETCMD_LOGON(packet))
+                                    if player.version != YSF_VERSION and VIA_VERSION:
+                                        info(f"ViaVersion enabled : Porting {player.username} from {player.version} to {YSF_VERSION}")
+                                        message_to_server.append(YSchat.message(f"Porting you to YSFlight {YSF_VERSION}, This is currently Experimental"))
+                                        message_to_server.append(YSchat.message(f"Please report any bugs to the server admin or join with the correct version"))
+                                        data = YSviaversion.genViaVersion(player.username, YSF_VERSION)
+                                        writer.write(data)
+                                        continue
 
                                 elif packet_type == "FSNETCMD_AIRPLANESTATE":
-                                    # print("Damaging!")
-                                    # damageData = FSNETCMD_GETDAMAGE.encode(player.aircraft.id, 1, 1, player.aircraft.id, 1, 11, 0, True)
-                                    # print("custom", damageData)
-                                    # message_to_server.append(damageData)
-                                    # message_to_client.append(damageData)
-
                                     packet = player.aircraft.add_state(FSNETCMD_AIRPLANESTATE(packet))
 
-                                    if player.aircraft.last_packet.g_value > G_LIM:
+                                    if abs(player.aircraft.last_packet.g_value) > G_LIM:
                                         debug("G Value exceeded : ", player.aircraft.last_packet.g_value)
                                         # We make a packet which damages the aircraft using the same pilot ID, using a gun
                                         damageData = FSNETCMD_GETDAMAGE.encode(player.aircraft.id, 1, 1, player.aircraft.id, 1, 11, 0, True)
@@ -94,16 +125,17 @@ async def handle_client(client_reader, client_writer):
                                         message_to_client.append(damageData)
                                         message_to_client.append(warnMsg)
 
-                                    prev_life = player.aircraft.prev_life
                                     if player.aircraft.life == -1: #Uninitialised
-                                        player.aircraft.life = prev_life
+                                        player.aircraft.prev_life = player.aircraft.life
 
-                                    elif prev_life > player.aircraft.life:
+                                    elif player.aircraft.prev_life < player.aircraft.life and player.aircraft.prev_life != -1 and not player.aircraft.just_repaired:
                                         cheatingMsg = YSchat.message(f"{HEALTH_HACK_MESSAGE} by {player.username}")
-                                        message_to_client.append(cheatingMsg)
+                                        warning(f"Health hack detected for {player.username}, Connected from {player.ip}")
+                                        message_to_server.append(cheatingMsg)
 
                                     elif player.aircraft.life < SMOKE_LIFE and SMOKE_PLANE:
-
+                                        # We patch the packet to have smoke forcefully
+                                        data = FSNETCMD_AIRPLANESTATE(data[4:]).smoke()
                                         if not player.aircraft.damage_engine_warn_sent:
                                             warningMsg = YSchat.message(f"Your engine has been damaged! You can't turn on afterburner")
                                             debug(f"Sending warning to {player.username}")
@@ -111,10 +143,16 @@ async def handle_client(client_reader, client_writer):
                                             player.aircraft.damage_engine_warn_sent = True
                                             message_to_client.append(FSNETCMD_AIRCMD.set_afterburner(player.aircraft.id, False, True))
 
-                                    player.aircraft.life = prev_life
+                                    player.aircraft.prev_life = player.aircraft.life
+                                    player.aircraft.just_repaired = False
 
                                 elif packet_type == "FSNETCMD_UNJOIN":
                                     player.aircraft.reset()
+
+                                elif packet_type == "FSNETCMD_WEAPONCONFIG":
+                                    player.aircraft.just_repaired = True
+                                    if player.aircraft.get_initial_config_value("AFTBURNR") == "TRUE": message_to_client.append(player.aircraft.set_afterburner(True))
+                                    debug("Aircraft repaired!")
 
 
                                 # elif packet_type == "FSNETCMD_GETDAMAGE":
@@ -237,7 +275,7 @@ async def handle_client(client_reader, client_writer):
                         writer.write(data)
                         await writer.drain()
                 except (asyncio.CancelledError, ConnectionResetError, BrokenPipeError) as e:
-                    if e == BrokenPipeError:
+                    if e == BrokenPipeError or  ConnectionResetError or asyncio.CancelledError:
                         info(f"Connection closed by {player.username} : {player.ip}")
                     else:
                         warning(f"Connection error during packet forwarding: {e}")
@@ -249,13 +287,15 @@ async def handle_client(client_reader, client_writer):
             forward(server_reader, client_writer, "server_to_client"),
         )
     except (asyncio.CancelledError, ConnectionResetError, BrokenPipeError) as e:
-        critical(f"Connection error: {e}")
+        if not isinstance(e, BrokenPipeError):
+            critical(f"Connection error: {e}")
     finally:
         try:
             client_writer.close()
             await client_writer.wait_closed()
         except Exception as e:
-            critical(f"Error closing client connection: {e}")
+            if not isinstance(e, BrokenPipeError):
+                critical(f"Error closing client connection: {e}")
 
 
 # Start the proxy server
@@ -267,4 +307,7 @@ async def start_proxy():
 
 
 if __name__ == "__main__":
-    asyncio.run(start_proxy())
+    try:
+        asyncio.run(start_proxy())
+    except KeyboardInterrupt:
+        info("Goodbye!")
