@@ -3,7 +3,7 @@ from struct import pack, unpack
 class FSNETCMD_ENVIRONMENT: #33
     def __init__(self, buffer:bytes, should_decode:bool=True):
         self.buffer = buffer
-        self.day_night = None # 0 is day, 1 is night
+        self.day_night = -1 # 0 is day, 1 is night
         self.flags = {
             "fog":False,
             "blackout":False,
@@ -29,7 +29,7 @@ class FSNETCMD_ENVIRONMENT: #33
             self.flags["midair"] = bool(flags & 16)
         if flags&128 == 1: #Server controls can_land_anywhere:
             self.flags["can_land_anywhere"] = bool(flags & 64)
-     
+
     @staticmethod
     def encode(day_night, fog, blackout, midair, can_land_anywhere, wind, visibility, with_size:bool=False):
         flags = 0
@@ -49,3 +49,12 @@ class FSNETCMD_ENVIRONMENT: #33
             return pack("I", len(buffer))+buffer
         return buffer
 
+    @staticmethod
+    def setTime(buffer:bytes, night:bool, with_size:bool = True):
+        if with_size:
+           values = list(unpack("IHHIffff", buffer[4:]))
+        else:
+           values = list(unpack("IHHIffff", buffer))
+        if night: values[2] = 1
+        elif not night: values[2] = 0
+        return pack("IHHIffff", *values)
