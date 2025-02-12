@@ -17,6 +17,7 @@ class Aircraft:
         self.id = -1
         self.last_packet = None
         self.damage_engine_warn_sent = False
+        self.last_over_g_message = 0
         self.just_repaired = False
 
     def reset(self):
