@@ -11,6 +11,7 @@ class Player:
         self.version = 0
         self.ip = ""
         self.streamWriterObject = streamWriterObject
+        self.is_a_bot = True # We check if they are still present after LOGIN packet, then they're not a bot
 
     def set_aircraft(self, aircraft:Aircraft):
         self.aircraft = aircraft

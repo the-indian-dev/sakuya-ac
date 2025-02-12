@@ -3,6 +3,7 @@ import asyncio
 from config import *
 from lib.PacketManager.packets.FSNETCMD_TEXTMESSAGE import FSNETCMD_TEXTMESSAGE as txtMsgr
 from logging import debug, warning
+import re
 
 BOT_TOKEN = DISCORD_TOKEN
 
@@ -16,10 +17,15 @@ HEADERS = {
 }
 
 # Function to send a message to a specific Discord channel
-async def discord_send_message(channel_id, content):
+async def discord_send_message(channel_id:int, message:str, santize_message:bool = True):
+    """
+    Santizes the message of @everyone and @here pings
+    and then sends the message to given channel id
+    """
+    if santize_message : message = re.sub(r'@(?:everyone|here)', '', message)
     url = f'{BASE_URL}/channels/{channel_id}/messages'
     payload = {
-        'content': content
+        'content': message
     }
 
     async with aiohttp.ClientSession() as session:
@@ -30,22 +36,24 @@ async def discord_send_message(channel_id, content):
                 warning(f'Failed to send message. Status Code: {response.status} | {await response.text()}')
 
 # Function to fetch messages from a specific Discord channel
+
 async def discord_fetch_messages(channel_id, last_message_id=None):
-    debug("Fetching messages...")  # Debugging
     url = f'{BASE_URL}/channels/{channel_id}/messages'
     params = {'limit': 1}
     if last_message_id:
         params['after'] = last_message_id
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, headers=HEADERS, params=params) as response:
-            if response.status == 200:
-                messages = await response.json()
-                debug(f"Fetched messages: {messages}")  # Debugging
-                return messages
-            else:
-                print(f"Failed to fetch messages: {response.status} | {await response.text()}")
-                return []
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=HEADERS, params=params) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    warning(f"Failed to fetch messages. Status Code: {response.status} | {await response.text()}")
+                    return []
+    except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+        warning(f"Network error while fetching messages: {e}")
+        return []  # Return empty list to avoid crashing
 
 
 # Callback function when a new message is detected
@@ -76,8 +84,10 @@ async def monitor_channel(channel_id, playerList:list):
                         encoded_msg = txtMsgr.encode(f"[Discord] {message['author']['username']}: {message['content']}", True)
                         for player in playerList:
                             if player.streamWriterObject.is_closing():
+                                if not player.is_a_bot:
+                                    asyncio.create_task(discord_send_message(channel_id, f"{player.username} has left the server!"))
                                 playerList.remove(player)  # Remove disconnected players
-                                continue  # Skip this player
+                                continue
                             player.streamWriterObject.write(encoded_msg)
                             await player.streamWriterObject.drain()
                         on_new_message(message)
