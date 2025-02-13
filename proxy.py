@@ -7,6 +7,7 @@ import asyncio
 from struct import unpack, pack
 from lib.parseFlightData import parseFlightData
 from lib import YSchat, YSplayer, YSendFlight, YSundead, YSviaversion, Player, Aircraft
+from lib.plugin_manager import PluginManager
 from lib.PacketManager.PacketManager import PacketManager
 from lib.PacketManager.packets import *
 import logging
@@ -55,6 +56,9 @@ info("Perfect and Elegant Proxy for your YSFlight Server")
 info("Lisenced under GPLv3")
 info("Press CTRL+C to stop the proxy")
 
+#Load the plugins
+plugin_manager = PluginManager()
+
 # Handle client connections
 async def handle_client(client_reader, client_writer):
     message_to_client = []
@@ -76,7 +80,8 @@ async def handle_client(client_reader, client_writer):
 
             while True:
                 try:
-                    #Test if there are any unsent messages to the client or server from other processes.
+                    #Test if there are any unsent messages to the client or
+                    # server from other processes.
                     if len(message_to_client) > 0:
                         client_writer.write(message_to_client.pop(0))
                         await client_writer.drain()
@@ -114,34 +119,23 @@ async def handle_client(client_reader, client_writer):
                             try:
 
                                 if packet_type == "FSNETCMD_LOGON":
+                                    keep_message = plugin_manager.triggar_hook('on_login', packet, player, message_to_client, message_to_server)
+                                    if not keep_message:
+                                        data = None
                                     player.login(FSNETCMD_LOGON(packet))
                                     if player.version != YSF_VERSION and VIA_VERSION:
                                         info(f"ViaVersion enabled : Porting {player.username} from {player.version} to {YSF_VERSION}")
                                         message_to_client.append(YSchat.message(f"Porting you to YSFlight {YSF_VERSION}, This is currently Experimental"))
                                         message_to_client.append(YSchat.message(f"Please report any bugs to the server admin or join with the correct version"))
-                                        data = YSviaversion.genViaVersion(player.username, YSF_VERSION)
+                                        data = YSviaversion.genViaVersion(player.username, YSF_VERSION) #TODO: Refactor using the FSNETCMD packet.
                                         writer.write(data)
                                         continue
 
                                 elif packet_type == "FSNETCMD_AIRPLANESTATE":
-                                    packet = player.aircraft.add_state(FSNETCMD_AIRPLANESTATE(packet))
-
-                                    # Disco lights
-                                    # Just for fun remove in production
-                                    #skycolorPacket = FSNETCMD_SKYCOLOR.encode(randint(0,255), randint(0,255), randint(0,255), True)
-                                    #fogcolorpacket = FSNETCMD_FOGCOLOR.encode(randint(0,255), randint(0,255), randint(0,255), True)
-                                    #message_to_server.append(skycolorPacket)
-                                    #message_to_client.append(skycolorPacket)
-                                    #message_to_server.append(fogcolorpacket)
-                                    #message_to_client.append(fogcolorpacket)
-
-                                    if abs(player.aircraft.last_packet.g_value) > G_LIM:
-                                        debug("G Value exceeded : ", player.aircraft.last_packet.g_value)
-                                        # We make a packet which damages the aircraft using the same pilot ID, using a gun
-                                        damageData = FSNETCMD_GETDAMAGE.encode(player.aircraft.id, 1, 1, player.aircraft.id, 1, 11, 0, True)
-                                        warnMsg = YSchat.message(f"You are exceeding the G Limit for the aircraft!, gValue = {player.aircraft.last_packet.g_value}!")
-                                        message_to_client.append(damageData)
-                                        message_to_client.append(warnMsg)
+                                    packet = player.aircraft.add_state(FSNETCMD_AIRPLANESTATE(packet)) #TODO: Do we want to convert all this to plugins? Probably not, but there is duplicated functionality
+                                    keep_message = plugin_manager.triggar_hook('on_flight_data', packet, player, message_to_client, message_to_server)
+                                    if not keep_message:
+                                        data = None
 
                                     if player.aircraft.life == -1: #Uninitialised
                                         player.aircraft.prev_life = player.aircraft.life
@@ -174,16 +168,11 @@ async def handle_client(client_reader, client_writer):
 
                                 elif packet_type == "FSNETCMD_TEXTMESSAGE":
                                     msg = FSNETCMD_TEXTMESSAGE(packet)
+                                    keep_message = plugin_manager.triggar_hook('on_chat', packet, player, message_to_client, message_to_server)
+                                    if not keep_message:
+                                        data = None
                                     finalMsg = (f"{player.username} : {msg.message}")
-                                    # TODO: Remove in production
-                                    # skyColor = FSNETCMD_SKYCOLOR.encode(136, 34, 34, True) # Top Gradient
-                                    # fogColor = FSNETCMD_FOGCOLOR.encode(237, 156, 21, True) # Bottom Gradient
-                                    # fogColor = FSNETCMD_FOGCOLOR.encode(136, 34, 34, True) # Dark Orange
-                                    fogColor = FSNETCMD_FOGCOLOR.encode(120, 30, 30, True) # Magenta Tint
-                                    # message_to_client.append(skyColor)
-                                    message_to_client.append(fogColor)
-                                    # message_to_server.append(skyColor)
-                                    message_to_server.append(fogColor)
+
 
                                     if DISCORD_ENABLED:
                                         # Make it non blocking!
@@ -222,9 +211,10 @@ async def handle_client(client_reader, client_writer):
                                 pck = FSNETCMD_ENVIRONMENT.setTime(packet, True, False)
                                 data = pack("I", len(pck)) + pck
 
-                        # Forward the packet to the other endpoint
-                        writer.write(data)
-                        await writer.drain()
+                        # Forward the packet to the other endpoint if the data packet still exists.
+                        if data:
+                            writer.write(data)
+                            await writer.drain()
                 except (asyncio.CancelledError, ConnectionResetError, BrokenPipeError) as e:
                     if e == BrokenPipeError or  ConnectionResetError or asyncio.CancelledError:
                         info(f"Connection closed by {player.username} : {player.ip}")
