@@ -6,7 +6,7 @@ Lisenced under GPLv3
 import asyncio
 from struct import unpack, pack
 from lib.parseFlightData import parseFlightData
-from lib import YSchat, YSplayer, YSendFlight, YSundead, YSviaversion, Player, Aircraft
+from lib import YSchat, YSviaversion, Player, Aircraft
 from lib.plugin_manager import PluginManager
 from lib.PacketManager.PacketManager import PacketManager
 from lib.PacketManager.packets import *
