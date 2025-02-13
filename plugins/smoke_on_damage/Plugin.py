@@ -1,5 +1,6 @@
 """TThis plugin will cause the aircraft to emit smoke if it's health is below a certain threshold.
-It is also an example of a plugin as a folder/module."""
+It is also an example of a plugin as a folder/module.
+This can be used as a basis for more complex plugins that may need multiple files."""
 from lib.PacketManager.packets import FSNETCMD_AIRCMD, FSNETCMD_AIRPLANESTATE, FSNETCMD_TEXTMESSAGE
 from logging import debug
 from config import SMOKE_LIFE, SMOKE_PLANE

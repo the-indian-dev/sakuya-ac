@@ -137,15 +137,11 @@ async def handle_client(client_reader, client_writer):
                                     if not keep_message:
                                         data = None
 
-                                    if player.aircraft.life == -1: #Uninitialised
-                                        player.aircraft.prev_life = player.aircraft.life
-
                                     elif player.aircraft.prev_life < player.aircraft.life and player.aircraft.prev_life != -1 and not player.aircraft.just_repaired:
                                         cheatingMsg = YSchat.message(f"{HEALTH_HACK_MESSAGE} by {player.username}")
                                         warning(f"Health hack detected for {player.username}, Connected from {player.ip}")
                                         message_to_server.append(cheatingMsg)
 
-                                    player.aircraft.prev_life = player.aircraft.life
                                     player.aircraft.just_repaired = False
 
                                 elif packet_type == "FSNETCMD_UNJOIN":
