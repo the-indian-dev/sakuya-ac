@@ -39,22 +39,38 @@ class FSNETCMD_ENVIRONMENT: #33
             flags |= 4
             flags |=8
         if midair:
-            flags += 16
-            flags += 32
+            flags |= 16
+            flags |= 32
         if can_land_anywhere:
-            flags += 64
-            flags += 128
+            flags |= 64
+            flags |= 128
         buffer = pack("IHHIffff", 33, 0, day_night, flags, *wind, visibility)
         if with_size:
             return pack("I", len(buffer))+buffer
         return buffer
 
     @staticmethod
-    def setTime(buffer:bytes, night:bool, with_size:bool = True):
-        if with_size:
-           values = list(unpack("IHHIffff", buffer[4:]))
+    def set_time(buffer:bytes, night:bool, with_size:bool = True):
+        if len(buffer)>28:
+            values = list(unpack("IHHIffff", buffer[4:]))
         else:
-           values = list(unpack("IHHIffff", buffer))
+            values = list(unpack("IHHIffff", buffer))
         if night: values[2] = 1
         elif not night: values[2] = 0
-        return pack("IHHIffff", *values)
+        packet = pack("IHHIffff", *values)
+        if with_size:
+            return pack("I", len(packet)) + packet
+        return packet
+
+    @staticmethod
+    def set_visibility(buffer:bytes, visibility:int, with_size:bool = True):
+        if len(buffer)>28: #Full data packet + the size
+            environment = FSNETCMD_ENVIRONMENT(buffer[4:])
+        else:
+            environment = FSNETCMD_ENVIRONMENT(buffer)
+        environment.visibility = visibility
+        packet = FSNETCMD_ENVIRONMENT.encode(environment.day_night, True,
+                                             environment.flags['blackout'], environment.flags['midair'],
+                                             environment.flags['can_land_anywhere'],
+                                             environment.wind, visibility, with_size)
+        return packet
