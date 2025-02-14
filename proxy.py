@@ -6,7 +6,7 @@ Lisenced under GPLv3
 import asyncio
 from struct import unpack, pack
 from lib.parseFlightData import parseFlightData
-from lib import YSchat, YSplayer, YSendFlight, YSundead, YSviaversion, Player, Aircraft
+from lib import YSchat, YSviaversion, Player, Aircraft
 from lib.plugin_manager import PluginManager
 from lib.PacketManager.PacketManager import PacketManager
 from lib.PacketManager.packets import *
@@ -132,39 +132,25 @@ async def handle_client(client_reader, client_writer):
                                         continue
 
                                 elif packet_type == "FSNETCMD_AIRPLANESTATE":
-                                    packet = player.aircraft.add_state(FSNETCMD_AIRPLANESTATE(packet)) #TODO: Do we want to convert all this to plugins? Probably not, but there is duplicated functionality
+                                    player.aircraft.add_state(FSNETCMD_AIRPLANESTATE(packet)) #TODO: Do we want to convert all this to plugins? Probably not, but there is duplicated functionality
                                     keep_message = plugin_manager.triggar_hook('on_flight_data', packet, player, message_to_client, message_to_server)
                                     if not keep_message:
                                         data = None
-
-                                    if player.aircraft.life == -1: #Uninitialised
-                                        player.aircraft.prev_life = player.aircraft.life
 
                                     elif player.aircraft.prev_life < player.aircraft.life and player.aircraft.prev_life != -1 and not player.aircraft.just_repaired:
                                         cheatingMsg = YSchat.message(f"{HEALTH_HACK_MESSAGE} by {player.username}")
                                         warning(f"Health hack detected for {player.username}, Connected from {player.ip}")
                                         message_to_server.append(cheatingMsg)
 
-                                    elif player.aircraft.life < SMOKE_LIFE and SMOKE_PLANE:
-                                        # We patch the packet to have smoke forcefully
-                                        data = FSNETCMD_AIRPLANESTATE(data[4:]).smoke()
-                                        if not player.aircraft.damage_engine_warn_sent:
-                                            warningMsg = YSchat.message(f"Your engine has been damaged! You can't turn on afterburner")
-                                            debug(f"Sending warning to {player.username}")
-                                            message_to_client.append(warningMsg)
-                                            player.aircraft.damage_engine_warn_sent = True
-                                            message_to_client.append(FSNETCMD_AIRCMD.set_afterburner(player.aircraft.id, False, True))
-
-                                    player.aircraft.prev_life = player.aircraft.life
                                     player.aircraft.just_repaired = False
 
                                 elif packet_type == "FSNETCMD_UNJOIN":
                                     player.aircraft.reset()
 
                                 elif packet_type == "FSNETCMD_WEAPONCONFIG":
-                                    player.aircraft.just_repaired = True
-                                    if player.aircraft.get_initial_config_value("AFTBURNR") == "TRUE": message_to_client.append(player.aircraft.set_afterburner(True))
-                                    debug("Aircraft repaired!")
+                                    keep_message = plugin_manager.triggar_hook('on_weapon_config', packet, player, message_to_client, message_to_server)
+                                    if not keep_message:
+                                        data = None
 
                                 elif packet_type == "FSNETCMD_TEXTMESSAGE":
                                     msg = FSNETCMD_TEXTMESSAGE(packet)
@@ -172,7 +158,6 @@ async def handle_client(client_reader, client_writer):
                                     if not keep_message:
                                         data = None
                                     finalMsg = (f"{player.username} : {msg.message}")
-
 
                                     if DISCORD_ENABLED:
                                         # Make it non blocking!

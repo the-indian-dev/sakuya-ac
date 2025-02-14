@@ -14,6 +14,7 @@ class PluginManager:
 
     def load_plugins(self):
         for plugin in os.listdir(PLUGIN_DIR):
+            plugin_path = os.path.join(PLUGIN_DIR, plugin)
             if plugin.endswith('.py') and not plugin.startswith('__'):
                 plugin_name = plugin[:-3]
                 plugin_module = importlib.import_module(plugin_name)
@@ -23,6 +24,15 @@ class PluginManager:
                         self.register_plugin(plugin_instance)
                         info(f"Loaded plugin {plugin_name}")
                         self.plugins[plugin_name] = plugin_instance
+            elif os.path.isdir(plugin_path) and os.path.exists(os.path.join(plugin_path, '__init__.py')):
+                plugin_module = importlib.import_module(plugin)
+                if hasattr(plugin_module, 'Plugin'):
+                    if plugin_module.ENABLED:
+                        plugin_instance = plugin_module.Plugin()
+                        self.register_plugin(plugin_instance)
+                        info(f"Loaded plugin {plugin}")
+                        self.plugins[plugin] = plugin_instance
+                        
 
     def register_plugin(self, plugin):
         """Registers the plugin with the plugin manager"""
@@ -42,5 +52,7 @@ class PluginManager:
         keep_orignal = True
         if hook_name in self.hooks:
             for callback in self.hooks[hook_name]:
-                keep_orignal = callback(data, *args, **kwargs)
+                keep = callback(data, *args, **kwargs)
+                if keep == False:
+                    keep_orignal = False
         return keep_orignal
