@@ -8,9 +8,9 @@ LOGGING_LEVEL = INFO
 # Server Configuration
 # Replace with the YSFlight server address
 SERVER_HOST = "127.0.0.1"
-SERVER_PORT = 7915 # Please put where the normal YSFlight server is running
+SERVER_PORT = 7914 # Please put where the normal YSFlight server is running
 # Port for the proxy server
-PROXY_PORT = 9000
+PROXY_PORT = 7915
 
 # Welcome Message to the playe
 # For formatting use {username}
@@ -61,7 +61,7 @@ SMOKE_LIFE = 5
 # On Modern Linux distros you may need to create a virtual environment to install
 # the dependencies
 
-DISCORD_ENABLED = True
+DISCORD_ENABLED = False
 
 # Make sure to enable read message intent for the bot.
 

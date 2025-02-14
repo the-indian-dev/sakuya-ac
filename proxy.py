@@ -192,9 +192,9 @@ async def handle_client(client_reader, client_writer):
                                     asyncio.create_task(discord_send_message(CHANNEL_ID, f"{player.username} has joined the server!"))
 
                             elif packet_type == "FSNETCMD_ENVIRONMENT":
-                                # We set time to night
-                                pck = FSNETCMD_ENVIRONMENT.setTime(packet, True, False)
-                                data = pack("I", len(pck)) + pck
+                                keep_message = plugin_manager.triggar_hook('on_environment_server', packet, player, message_to_client, message_to_server)
+                                if not keep_message:
+                                    data = None
 
                         # Forward the packet to the other endpoint if the data packet still exists.
                         if data:
