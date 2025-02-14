@@ -5,7 +5,7 @@ from lib.PacketManager.packets import List_Constructor
 from json import load
 from struct import pack
 from logging import error
-ENABLED = True
+ENABLED = False
 custom_list_file = "plugins\\custom_aircraft_list\\custom_list.json"
 
 class Plugin:
@@ -27,7 +27,6 @@ class Plugin:
     def on_list(self, packet, player, message_to_client, message_to_server):
         if ENABLED:
             return False
-        return True
 
     def on_list_server(self, packet, player, message_to_client, message_to_server):
         if ENABLED:
@@ -41,4 +40,3 @@ class Plugin:
                 for packet in lc:
                     message_to_client.append(packet)
             return False
-        return True
