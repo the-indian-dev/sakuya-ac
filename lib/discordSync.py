@@ -89,6 +89,12 @@ async def monitor_channel(channel_id, playerList:list):
                                 playerList.remove(player)  # Remove disconnected players
                                 continue
                             player.streamWriterObject.write(encoded_msg)
-                            await player.streamWriterObject.drain()
+                            try:
+                                await player.streamWriterObject.drain()
+                            except Exception as e:
+                                warning(f"Error while sending message to {player.username}: {e}")
+                                if not player.is_a_bot:
+                                    asyncio.create_task(discord_send_message(channel_id, f"{player.username} has left the server!"))
+                                playerList.remove(player)
                         on_new_message(message)
         await asyncio.sleep(1)  # Poll every second (adjust as needed)

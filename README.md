@@ -29,6 +29,7 @@ Sakuya AC and G Limiter at 20. It also has all the experimental options turned o
 - All features are server side, vanilla client can join
 - Supports clients post 20150425 version to join the server (Experimental)
 - Easy configuration via `config.py`.
+- Plugin Support
 
 ---
 
@@ -73,10 +74,8 @@ PROXY_PORT = 9000          # Port where the proxy listens
 ---
 ## **TODO :memo:**
 1. Add more detection rules.
-2. Negative g-values are wrong interpeted
-3. Add more documentation.
-4. Add radar features
-5. Add Plugin API
+2. Radar.
+3. More documentation.
 ---
 
 ## **Contact**

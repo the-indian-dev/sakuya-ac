@@ -8,15 +8,24 @@ LOGGING_LEVEL = INFO
 # Server Configuration
 # Replace with the YSFlight server address
 SERVER_HOST = "127.0.0.1"
-SERVER_PORT = 7914 # Please put where the normal YSFlight server is running
+SERVER_PORT = 7915 # Please put where the normal YSFlight server is running
 # Port for the proxy server
-PROXY_PORT = 7915
+PROXY_PORT = 9000
 
 # Welcome Message to the playe
 # For formatting use {username}
 # eg. "Welcome {username} to the server!"
 # > Welcome Sakuya to the server!
+
 WELCOME_MESSAGE = "Welcome {username} to the server!"
+
+# Command Prefix for the server
+# When commands are entered in chat, this will be treated
+# as command when it starts with the prefix
+# eg. if PREFIX = "/"
+# /help will be treated as command
+
+PREFIX = "/"
 
 # Native YSFlight Server
 # Please select the YSFlight server version for the

@@ -35,3 +35,6 @@ class Player:
             })
             return True
         return False
+
+    def __str__(self):
+        return f"Player {self.username} flying {self.aircraft.name} at {self.aircraft.position}"

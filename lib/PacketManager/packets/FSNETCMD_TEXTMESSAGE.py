@@ -6,7 +6,7 @@ class FSNETCMD_TEXTMESSAGE: #32
         self.buffer = buffer
         self.raw_message = None
         self.user = None
-        self.message = None
+        self.message = ""
         if should_decode:
             self.decode()
 

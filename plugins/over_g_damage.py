@@ -3,7 +3,10 @@ it exceeds the g-force limit set in the config file."""
 from lib.PacketManager.packets import FSNETCMD_GETDAMAGE, FSNETCMD_TEXTMESSAGE
 from config import G_LIM
 import time
-ENABLED = True
+
+# CONFIG
+ENABLED = True # Enable or disable the plugin
+INTERVAL = 0.3 # Interval of second before G Limit check is enforced
 
 class Plugin:
     def __init__(self):
@@ -16,7 +19,7 @@ class Plugin:
     def on_receive(self, data, player, messages_to_client, *args):
         if ENABLED:
             if abs(player.aircraft.last_packet.g_value)> G_LIM:
-                if time.time() - player.aircraft.last_over_g_message > 1: # Only send every second.
+                if time.time() - player.aircraft.last_over_g_message > INTERVAL:
                     player.aircraft.last_over_g_message = time.time()
                     damage_packet = FSNETCMD_GETDAMAGE.encode(player.aircraft.id,
                                                             1, 1,

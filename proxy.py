@@ -6,7 +6,8 @@ Lisenced under GPLv3
 import asyncio
 from struct import unpack, pack
 from lib.parseFlightData import parseFlightData
-from lib import YSchat, YSviaversion, Player, Aircraft
+from lib import YSchat, YSviaversion, Player, Aircraft, triggerCommand
+from lib.triggerRespectiveHook import triggerRespectiveHook, triggerRespectiveHookServer
 from lib.plugin_manager import PluginManager
 from lib.PacketManager.PacketManager import PacketManager
 from lib.PacketManager.packets import *
@@ -15,9 +16,6 @@ from logging import critical, warning, info, debug
 from config import *
 if DISCORD_ENABLED: from lib.discordSync import *
 import traceback
-
-# TODO: Remove in Production
-# from random import randint
 
 # Configuration
 SERVER_HOST = SERVER_HOST
@@ -119,10 +117,11 @@ async def handle_client(client_reader, client_writer):
 
                             try:
 
+
                                 if packet_type == "FSNETCMD_LOGON":
-                                    keep_message = plugin_manager.triggar_hook('on_login', packet, player, message_to_client, message_to_server)
-                                    if not keep_message:
-                                        data = None
+                                    # keep_message = plugin_manager.triggar_hook('on_login', packet, player, message_to_client, message_to_server)
+                                    # if not keep_message:
+                                    #    data = None
                                     player.login(FSNETCMD_LOGON(packet))
                                     if player.version != YSF_VERSION and VIA_VERSION:
                                         info(f"ViaVersion enabled : Porting {player.username} from {player.version} to {YSF_VERSION}")
@@ -134,11 +133,11 @@ async def handle_client(client_reader, client_writer):
 
                                 elif packet_type == "FSNETCMD_AIRPLANESTATE":
                                     player.aircraft.add_state(FSNETCMD_AIRPLANESTATE(packet)) #TODO: Do we want to convert all this to plugins? Probably not, but there is duplicated functionality
-                                    keep_message = plugin_manager.triggar_hook('on_flight_data', packet, player, message_to_client, message_to_server)
-                                    if not keep_message:
-                                        data = None
+                                    # keep_message = plugin_manager.triggar_hook('on_flight_data', packet, player, message_to_client, message_to_server)
+                                    # if not keep_message:
+                                    #    data = None
 
-                                    elif player.aircraft.prev_life < player.aircraft.life and player.aircraft.prev_life != -1 and not player.aircraft.just_repaired:
+                                    if player.aircraft.prev_life < player.aircraft.life and player.aircraft.prev_life != -1 and not player.aircraft.just_repaired:
                                         cheatingMsg = YSchat.message(f"{HEALTH_HACK_MESSAGE} by {player.username}")
                                         warning(f"Health hack detected for {player.username}, Connected from {player.ip}")
                                         message_to_server.append(cheatingMsg)
@@ -149,24 +148,35 @@ async def handle_client(client_reader, client_writer):
                                     player.aircraft.reset()
 
                                 elif packet_type == "FSNETCMD_WEAPONCONFIG":
-                                    keep_message = plugin_manager.triggar_hook('on_weapon_config', packet, player, message_to_client, message_to_server)
-                                    if not keep_message:
-                                        data = None
+                                    #keep_message = plugin_manager.triggar_hook('on_weapon_config', packet, player, message_to_client, message_to_server)
+                                    #if not keep_message:
+                                    #    data = None
+                                    pass
 
                                 elif packet_type == "FSNETCMD_TEXTMESSAGE":
                                     msg = FSNETCMD_TEXTMESSAGE(packet)
-                                    keep_message = plugin_manager.triggar_hook('on_chat', packet, player, message_to_client, message_to_server)
-                                    if not keep_message:
-                                        data = None
+                                    # keep_message = plugin_manager.triggar_hook('on_chat', packet, player, message_to_client, message_to_server)
+                                    # if not keep_message:
+                                    #    data = None
+
                                     finalMsg = (f"{player.username} : {msg.message}")
+                                    if msg.message.startswith(PREFIX):
+                                        data = None
+                                        command = msg.message.split(" ")[0][1:]
+                                        asyncio.create_task(triggerCommand.triggerCommand(command, msg.message, player, message_to_client, message_to_server, plugin_manager))
 
                                     if DISCORD_ENABLED:
                                         # Make it non blocking!
                                         asyncio.create_task(discord_send_message(CHANNEL_ID, finalMsg))
+
                                 elif packet_type == "FSNETCMD_LIST":
-                                    keep_message = plugin_manager.triggar_hook('on_list', packet, player, message_to_client, message_to_server)
-                                if not keep_message:
-                                    data = None
+                                    # keep_message = plugin_manager.triggar_hook('on_list', packet, player, message_to_client, message_to_server)
+                                # if not keep_message:
+                                #   data = None
+                                    pass
+
+                                keep_message = triggerRespectiveHook(packet_type, packet, player, message_to_client, message_to_server, plugin_manager)
+                                if not keep_message: data = None
 
                             except Exception as e:
                                 warning(f"Error parsing flight data: {e}", exc_info=True)
@@ -175,6 +185,9 @@ async def handle_client(client_reader, client_writer):
                         else :
                             debug("S2C" + str(packet_type))
                             debug(data)
+
+                            keep_message = triggerRespectiveHookServer(packet_type, packet, player, message_to_client, message_to_server, plugin_manager)
+                            if not keep_message: data = None
 
                             #Coming from the server to the client
                             if packet_type == "FSNETCMD_ADDOBJECT":
@@ -195,16 +208,6 @@ async def handle_client(client_reader, client_writer):
                                 player.is_a_bot = False
                                 if DISCORD_ENABLED:
                                     asyncio.create_task(discord_send_message(CHANNEL_ID, f"{player.username} has joined the server!"))
-
-                            elif packet_type == "FSNETCMD_ENVIRONMENT":
-                                keep_message = plugin_manager.triggar_hook('on_environment_server', packet, player, message_to_client, message_to_server)
-                                if not keep_message:
-                                    data = None
-
-                            elif packet_type == "FSNETCMD_LIST":
-                                keep_message = plugin_manager.triggar_hook('on_list_server', packet, player, message_to_client, message_to_server)
-                                if not keep_message:
-                                    data = None
 
                         # Forward the packet to the other endpoint if the data packet still exists.
                         if data:
