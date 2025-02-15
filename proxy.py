@@ -82,6 +82,7 @@ async def handle_client(client_reader, client_writer):
                 try:
                     #Test if there are any unsent messages to the client or
                     # server from other processes.
+                    keep_message = True # Reset this before each loop.
                     if len(message_to_client) > 0:
                         client_writer.write(message_to_client.pop(0))
                         await client_writer.drain()
@@ -162,6 +163,10 @@ async def handle_client(client_reader, client_writer):
                                     if DISCORD_ENABLED:
                                         # Make it non blocking!
                                         asyncio.create_task(discord_send_message(CHANNEL_ID, finalMsg))
+                                elif packet_type == "FSNETCMD_LIST":
+                                    keep_message = plugin_manager.triggar_hook('on_list', packet, player, message_to_client, message_to_server)
+                                if not keep_message:
+                                    data = None
 
                             except Exception as e:
                                 warning(f"Error parsing flight data: {e}", exc_info=True)
@@ -193,6 +198,11 @@ async def handle_client(client_reader, client_writer):
 
                             elif packet_type == "FSNETCMD_ENVIRONMENT":
                                 keep_message = plugin_manager.triggar_hook('on_environment_server', packet, player, message_to_client, message_to_server)
+                                if not keep_message:
+                                    data = None
+
+                            elif packet_type == "FSNETCMD_LIST":
+                                keep_message = plugin_manager.triggar_hook('on_list_server', packet, player, message_to_client, message_to_server)
                                 if not keep_message:
                                     data = None
 
