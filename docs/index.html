@@ -15,11 +15,23 @@
         <div id="app"></div>
         <script>
             window.$docsify = {
-                name: "",
-                repo: "",
+                name: "Sakuya AC API Documentation",
+                repo: "https://github.com/the-indian-dev/sakuya-ac",
+                maxLevel: 3,
+                plugins: [
+                    function (hook) {
+                        hook.doneEach(function () {
+                            Prism.highlightAll();
+                        });
+                    },
+                ],
             };
         </script>
         <!-- Docsify v4 -->
         <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+        <!-- Click to copy plugin -->
+        <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+        <!-- Prism -->
+        <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
     </body>
 </html>
