@@ -1947,5 +1947,3 @@ This packet is used to transmit weapon configuration settings for aircraft. It a
         *   Sets the `aircraft_id`.
         *   Creates a `weapon_config` dictionary with three smoke weapon types (32, 33, 34 - likely representing different smoke launcher positions or types) and sets their color to gray `[66, 66, 66]`.
         *   Sets `with_size=True` to include the packet size prefix in the encoded buffer.
-
-**In summary,** `FSNETCMD_WEAPONCONFIG` is designed for transmitting aircraft weapon loadout details. It handles regular weapon counts and has special logic for encoding and decoding smoke weapon colors using bit packing and scaling. The `addSmoke` method provides a convenience function to quickly enable smoke for a given aircraft.

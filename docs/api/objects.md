@@ -270,3 +270,33 @@ __str__()
 Returns a user-friendly string representation of the `Player` object. This string includes the player's `username`, the name of their `aircraft`, and its current `position`. Useful for logging and debugging purposes.
 
 *   **Returns**: A descriptive string of the `Player` object.
+
+## ``YSchat`` Class
+
+!> Deprecated! It is recomemded to use `FSNETCMD_TEXTMESSAGE` packet for chat messages.
+
+The `YSchat` class is a simple way to pack data into YSF Net commands and also quick way to
+pack text messages into chat messages.
+
+- It is located in `lib.YSchat`
+
+#### Methods
+
+##### ``YSchat.send(buffer: bytes)``
+
+- It take buffer as input and adds the header size info to it, therefore preparing
+the packet just before being sent
+
+**Returns** : Bytes Type object
+
+##### ``YSchat.reply(type: int, buffer: bytes)``
+
+- It adds the header packet type info to the buffer and then calls `send` method
+
+**Returns** : Bytes Type object
+
+##### ``YSchat.message(msg: str)``
+
+- Fully prepares a packet with the message string, can be directly sent to client or server.
+
+**Returns** : Bytes Type object
