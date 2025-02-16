@@ -1,0 +1,7 @@
+* [Home](/api/README.md)
+* [Plugin Structure](/api/plugin.md)
+* [Class Reference](/api/objects.md)
+  - [Aircraft](/api/objects.md#aircraft-class)
+  - [Player](/api/objects.md#player-class)
+* [Packet Reference](/api/packets.md)
+* [Hooks Reference](/api/hooks.md)

@@ -15,9 +15,12 @@
         <div id="app"></div>
         <script>
             window.$docsify = {
-                name: "Sakuya AC API Documentation",
+                name: "Sakuya AC",
                 repo: "https://github.com/the-indian-dev/sakuya-ac",
                 maxLevel: 3,
+                loadSidebar: true,
+                onlyCover: true,
+                coverpage: true,
                 plugins: [
                     function (hook) {
                         hook.doneEach(function () {
@@ -33,5 +36,7 @@
         <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
         <!-- Prism -->
         <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
+        <!-- Collapsable side bar -->
+        <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
     </body>
 </html>
