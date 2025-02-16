@@ -3,7 +3,7 @@ from struct import pack, unpack
 class FSNETCMD_FOGCOLOR:
     def __init__(self, buffer:bytes, should_decode:bool=True):
         self.buffer = buffer
-        self.redValye = 0
+        self.redValue = 0
         self.greenValue = 0
         self.blueValue = 0
         if should_decode:
