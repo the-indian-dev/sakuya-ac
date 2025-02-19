@@ -28,12 +28,15 @@ Sakuya AC and G Limiter at 20. It also has all the experimental options turned o
 - Adds features like G Limiter and Smoke Emission on Death.
 - All features are server side, vanilla client can join
 - Supports clients post 20150425 version to join the server (Experimental)
+- Discord chat sync
 - Easy configuration via `config.py`.
 - Plugin Support
 
 ---
 
 ## **Getting Started**
+
+[Docmentation for Plugin API and advanced configuration](https://the-indian-dev.github.io/sakuya-ac/)
 
 ### **Prerequisites**
 - Python 3.9+
@@ -80,7 +83,6 @@ PROXY_PORT = 9000          # Port where the proxy listens
 
 ## **Contact**
 - If you have questions, feedback, or suggestions, feel free to reach out to me on Discord: **@theindiandev**
-- You can email me at **theindiandev@theindiandev.in**
 - Join our discord server [here](https://discord.gg/CgEdmBQQMr)
 ---
 
