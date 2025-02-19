@@ -38,6 +38,8 @@ class Plugin:
 
     def on_flight_data(self, data, player, message_to_client, message_to_server):
         decode = FSNETCMD_AIRPLANESTATE(data)
+        print(player.username, decode.position)
+        print(refuelers, refueling)
         if player in refueling:
             for player in refuelers:
                 refueling[player] = [decode.fuel, decode.position]
@@ -57,6 +59,7 @@ class Plugin:
             if decode.fuel-100 > 0 and refuelers[player][2]:
                 a = FSNETCMD_AIRCMD.set_command(player.aircraft.id, "INITFUEL", f"{decode.fuel-5}kg", True)
                 message_to_client.append(a)
+        return True
 
     @staticmethod
     def in_range(refueler_cord:list, refueled_cord:list):
@@ -64,6 +67,7 @@ class Plugin:
         # refueler plane, ysf sends cords in list[x, y, z]
         # implement this later
         # for now we just use distance formula in a 3d space
+        print(refueler_cord, refueled_cord)
         dist = math.sqrt((refueler_cord[0]-refueled_cord[0])**2 + (refueler_cord[1]-refueled_cord[1])**2 + (refueler_cord[2]-refueled_cord[2])**2)
         print(dist)
         if dist < REFUEL_RADIUS:

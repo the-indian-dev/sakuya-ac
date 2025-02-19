@@ -38,7 +38,9 @@ class Plugin:
 
                 message_to_client.append(FSNETCMD_AIRCMD.set_afterburner(player.aircraft.id, False, True))
 
-        return False
+            return False
+        else:
+            return True
 
     def on_weapon_config(self, data, player, message_to_client, message_to_server):
         if ENABLED:

@@ -117,9 +117,6 @@ async def handle_client(client_reader, client_writer):
 
                             try:
 
-                                if packet_type == "FSNETCMD_AIRCMD":
-                                    print(FSNETCMD_AIRCMD.decode(packet))
-
                                 if packet_type == "FSNETCMD_LOGON":
                                     # keep_message = plugin_manager.triggar_hook('on_login', packet, player, message_to_client, message_to_server)
                                     # if not keep_message:
