@@ -62,8 +62,11 @@ class PluginManager:
         if hook_name in self.hooks:
             for callback in self.hooks[hook_name]:
                 keep = callback(data, *args, **kwargs)
-                if keep == False:
-                    keep_orignal = False
+                if type(keep) == bool:
+                    if keep == False:
+                        keep_orignal = False
+                else:
+                    warning(f"Return value of {callback} is not a boolean")
         return keep_orignal
 
     def trigger_command(self, command:str, player,  full_message:str, message_to_client:list, message_to_server:list):

@@ -117,7 +117,6 @@ async def handle_client(client_reader, client_writer):
 
                             try:
 
-
                                 if packet_type == "FSNETCMD_LOGON":
                                     # keep_message = plugin_manager.triggar_hook('on_login', packet, player, message_to_client, message_to_server)
                                     # if not keep_message:
@@ -185,6 +184,9 @@ async def handle_client(client_reader, client_writer):
                         else :
                             debug("S2C" + str(packet_type))
                             debug(data)
+
+                            #if packet_type == "FSNETCMD_AIRCMD":
+                            #    print(FSNETCMD_AIRCMD.decode(packet))
 
                             keep_message = triggerRespectiveHookServer(packet_type, packet, player, message_to_client, message_to_server, plugin_manager)
                             if not keep_message: data = None

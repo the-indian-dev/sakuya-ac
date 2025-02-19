@@ -1,4 +1,4 @@
-"""TThis plugin will cause the aircraft to emit smoke if it's health is below a certain threshold.
+"""This plugin will cause the aircraft to emit smoke if it's health is below a certain threshold.
 It is also an example of a plugin as a folder/module.
 This can be used as a basis for more complex plugins that may need multiple files."""
 from lib.PacketManager.packets import FSNETCMD_AIRCMD, FSNETCMD_AIRPLANESTATE, FSNETCMD_TEXTMESSAGE
@@ -38,7 +38,9 @@ class Plugin:
 
                 message_to_client.append(FSNETCMD_AIRCMD.set_afterburner(player.aircraft.id, False, True))
 
-        return False
+            return False
+        else:
+            return True
 
     def on_weapon_config(self, data, player, message_to_client, message_to_server):
         if ENABLED:
