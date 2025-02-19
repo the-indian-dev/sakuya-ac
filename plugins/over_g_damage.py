@@ -5,7 +5,7 @@ from config import G_LIM
 import time
 
 # CONFIG
-ENABLED = False # Enable or disable the plugin
+ENABLED = True # Enable or disable the plugin
 INTERVAL = 0.3 # Interval of second before G Limit check is enforced
 
 class Plugin:
