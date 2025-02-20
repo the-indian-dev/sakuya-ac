@@ -23,6 +23,7 @@ class Plugin:
         self.plugin_manager.register_command('refuel', self.refuel)
         self.plugin_manager.register_command('refueler', self.refueler)
         self.plugin_manager.register_hook('on_flight_data', self.on_flight_data)
+        self.plugin_manager.register_hook('on_unjoin', self.on_unjoin)
 
     def refueler(self, full_message, player, message_to_client, message_to_server):
         if player in refueling:
@@ -32,7 +33,7 @@ class Plugin:
             a = YSchat.message("You are no more refueling!")
             refuelers.pop(player)
         else:
-            a = YSchat.message(f"You are now refueling other players! To refuel the plane must be within {REFUEL_RADIUS}m")
+            a = YSchat.message(f"You are now refueling other players! To refuel the plane must be within {REFUEL_RADIUS}m and have same IFF")
             refuelers[player] = [0, [], False]
         message_to_client.append(a)
 
@@ -46,7 +47,7 @@ class Plugin:
             a = YSchat.message("You are no more refueling!")
             refueling.pop(player)
         else:
-            a = YSchat.message(f"You can now be refueled by other players! To refuel the plane must be within {REFUEL_RADIUS}m")
+            a = YSchat.message(f"You can now be refueled by other players! To refuel the plane must be within {REFUEL_RADIUS}m and have same IFF")
             refueling[player] = [0, []]
         message_to_client.append(a)
 
@@ -54,23 +55,24 @@ class Plugin:
         decode = FSNETCMD_AIRPLANESTATE(data)
         if player in refueling:
             for refueler in refuelers:
-                refueling[player] = [decode.fuel, decode.position]
-                if self.in_range(refuelers[refueler][1], decode.position):
-                    refuelers[refueler][2] = True
-                    max_lim = int((player.aircraft.initial_config['WEIGFUEL'])[:-2])
-                    if decode.fuel < max_lim:
-                        a = FSNETCMD_AIRCMD.set_command(player.aircraft.id, "INITFUEL", f"{decode.fuel+FUEL_RATE}kg", True)
-                        message_to_client.append(a)
-                    elif decode.fuel >= max_lim:
-                        a = YSchat.message("The plane is full!")
-                        refuelers[refueler][2] = False # No longer refueling
-                        message_to_client.append(a)
+                if refueler.iff == player.iff:
+                    refueling[player] = [decode.fuel, decode.position]
+                    if self.in_range(refuelers[refueler][1], decode.position):
+                        refuelers[refueler][2] = True
+                        max_lim = int((player.aircraft.initial_config['WEIGFUEL'])[:-2])
+                        if decode.fuel < max_lim:
+                            a = FSNETCMD_AIRCMD.set_command(player.aircraft.id, "INITFUEL", f"{decode.fuel+FUEL_RATE}kg", True)
+                            message_to_client.append(a)
+                        elif decode.fuel >= max_lim:
+                            a = YSchat.message("The plane is full!")
+                            refuelers[refueler][2] = False # No longer refueling
+                            message_to_client.append(a)
 
-                    if refuelers[refueler][0] < FUEL_RATE:
-                        a = YSchat.message("The refueler ran out of fuel!")
-                        message_to_client.append(a)
-                else:
-                    refuelers[refueler][2] = False # No longer refueling
+                        if refuelers[refueler][0] < FUEL_RATE:
+                            a = YSchat.message("The refueler ran out of fuel!")
+                            message_to_client.append(a)
+                    else:
+                        refuelers[refueler][2] = False # No longer refueling
 
 
         elif player in refuelers:
@@ -78,6 +80,13 @@ class Plugin:
             if decode.fuel-FUEL_RATE > 0 and refuelers[player][2]:
                 a = FSNETCMD_AIRCMD.set_command(player.aircraft.id, "INITFUEL", f"{decode.fuel-FUEL_RATE}kg", True)
                 message_to_client.append(a)
+        return True
+
+    def on_unjoin(self, data, player, message_to_client, message_to_server):
+        if player in refuelers:
+            refuelers.pop(player)
+        elif player in refueling:
+            refueling.pop(player)
         return True
 
     @staticmethod

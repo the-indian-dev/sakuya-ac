@@ -130,6 +130,9 @@ async def handle_client(client_reader, client_writer):
                                         writer.write(data)
                                         continue
 
+                                elif packet_type == "FSNETCMD_JOINREQUEST":
+                                    player.iff = FSNETCMD_JOINREQUEST(packet).iff + 1
+
                                 elif packet_type == "FSNETCMD_AIRPLANESTATE":
                                     player.aircraft.add_state(FSNETCMD_AIRPLANESTATE(packet)) #TODO: Do we want to convert all this to plugins? Probably not, but there is duplicated functionality
                                     # keep_message = plugin_manager.triggar_hook('on_flight_data', packet, player, message_to_client, message_to_server)
