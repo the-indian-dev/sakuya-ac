@@ -20,6 +20,9 @@ class FSNETCMD_JOINREQUEST: #8
         self.start_pos = self.start_pos.decode().strip('\x00')
         self.aircraft = self.aircraft.decode().strip('\x00')
 
+    def to_packet(self, with_size:bool=True):
+        return FSNETCMD_JOINREQUEST.encode(self.iff, self.aircraft, self.start_pos, self.fuel, self.smoke, with_size)
+
     @staticmethod
     def encode(iff, aircraft, start_pos, fuel, smoke, with_size:bool=False):
         buffer = pack("IHH32s32sHHH", 8, iff, 0, aircraft.encode(),
@@ -27,3 +30,6 @@ class FSNETCMD_JOINREQUEST: #8
         if with_size:
             return pack("I",len(buffer))+buffer
         return buffer
+    
+    def __str__(self):
+        return f"JoinRequest: {self.iff} {self.aircraft} {self.start_pos} {self.fuel} {self.smoke}"

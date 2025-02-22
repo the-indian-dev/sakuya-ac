@@ -74,7 +74,6 @@ class FSNETCMD_AIRPLANESTATE: #11
             # self.atti = list(unpack("HHH", self.buffer[26:32]))
             self.atti = list(map(lambda x: x * (pi / 32768.0),
                                  unpack("HHH", self.buffer[26:32])))
-            debug(self.atti)
 
             self.velocity = list(map(lambda x: x/10,
                                  unpack("HHH", self.buffer[32:38])))
@@ -218,6 +217,12 @@ class FSNETCMD_AIRPLANESTATE: #11
             packet = self.buffer[:74] + pack('h',flag) + self.buffer[76:]
             return pack('I',len(packet)) + packet
 
+    def to_packet(self, with_size:bool=True):
+        return FSNETCMD_AIRPLANESTATE.encode(self.remote_time, self.player_id, self.packet_version, self.position, self.atti, self.velocity, self.atti_velocity,
+               self.smoke_oil, self.fuel, self.payload, self.flight_state, self.vgw, self.spoiler, self.landing_gear, self.flap, self.brake,
+               self.flags, self.gun_ammo, self.rocket_ammo, self.aam, self.agm, self.bomb, self.life, self.g_value, self.throttle, self.elev, self.ail, self.rud,
+               self.trim, self.thrust_vector, self.bomb_bay_info, with_size)
+    
     @staticmethod
     def get_life(buffer:bytes):
         version = unpack("h", buffer[12:14])[0]
@@ -232,73 +237,81 @@ class FSNETCMD_AIRPLANESTATE: #11
                smoke_oil, fuel, payload, flight_state, vgw, spoiler, landing_gear, flap, brake,
                flags, gun_ammo, rocket_ammo, aam, agm, bomb, life, g_value, throttle, elev, ail, rud,
                trim, thrust_vector, bomb_bay_info, with_size:bool=False):
-        buffer = pack("IfI", 11, remote_time, player_id)
-        buffer += pack("H", packet_version)
-        if packet_version == 4 or packet_version == 5:
-            buffer += pack("fffhhhhhhhhh", *position, *atti, *velocity, *atti_velocity)
-            buffer += pack("hhhh", smoke_oil, fuel, payload, 0)
-            buffer += pack("BB", flight_state, int(vgw*255))
-            buffer += pack("BB", int(spoiler*15)<<4 | int(landing_gear*15), int(flap*15)<<4 | int(brake*15))
-            flagschar = 0
-            if flags["ab"]:
-                flagschar |= 1
-            if flags["firing"]:
-                flagschar |= 8
-            if flags["smoke"]:
-                flagschar |= flags["smoke"] << 8
-            if flags["beacon"]:
-                flagschar |= 16
-            if flags["nav_lights"]:
-                flagschar |= 32
-            if flags["strobe"]:
-                flagschar |= 64
-            if flags["landing_lights"]:
-                flagschar |= 128
-            buffer += pack("h", flagschar)
-            buffer += pack("HHBBB", gun_ammo, rocket_ammo, aam, agm, bomb)
-            buffer += pack("B", life)
-            buffer += pack("b", int(g_value*10))
-            buffer += pack("B", int(throttle*99))
-            buffer += pack("b", int(elev*99))
-            buffer += pack("b", int(ail*99))
-            buffer += pack("b", int(rud*99))
-            buffer += pack("b", int(trim*99))
+        try:
+            buffer = pack("IfI", 11, remote_time, player_id)
+            buffer += pack("H", packet_version)
+            if packet_version == 4 or packet_version == 5:
+                buffer += pack("fffhhhhhhhhh", *position, *atti, *velocity, *atti_velocity)
+                buffer += pack("hhhh", smoke_oil, fuel, payload, 0)
+                buffer += pack("BB", flight_state, int(vgw*255))
+                buffer += pack("BB", int(spoiler*15)<<4 | int(landing_gear*15), int(flap*15)<<4 | int(brake*15))
+                flagschar = 0
+                if flags["ab"]:
+                    flagschar |= 1
+                if flags["firing"]:
+                    flagschar |= 8
+                if flags["smoke"]:
+                    flagschar |= flags["smoke"] << 8
+                if flags["beacon"]:
+                    flagschar |= 16
+                if flags["nav_lights"]:
+                    flagschar |= 32
+                if flags["strobe"]:
+                    flagschar |= 64
+                if flags["landing_lights"]:
+                    flagschar |= 128
+                buffer += pack("h", flagschar)
+                buffer += pack("HHBBB", gun_ammo, rocket_ammo, aam, agm, bomb)
+                buffer += pack("B", life)
+                buffer += pack("b", int(g_value*10))
+                buffer += pack("B", int(throttle*99))
+                buffer += pack("b", int(elev*99))
+                buffer += pack("b", int(ail*99))
+                buffer += pack("b", int(rud*99))
+                buffer += pack("b", int(trim*99))
 
-            if packet_version == 4:
-                buffer += pack("BB", int(thrust_vector["vector"]*15)<<4 | int(thrust_vector["reverser"]*15),
-                    int(bomb_bay_info*15))
+                if packet_version == 4:
+                    buffer += pack("BB", int(thrust_vector["vector"]*15)<<4 | int(thrust_vector["reverser"]*15),
+                        int(bomb_bay_info*15))
 
-        else:
-            buffer += pack("fffhhhfff", *position, *atti, *velocity, *atti_velocity)
-            buffer += pack("HHHHH", gun_ammo, aam, agm, bomb, smoke_oil)
-            buffer += pack("f", payload)
-            buffer += pack("H", life)
-            buffer += pack("BB", flight_state, int(vgw*255))
-            buffer += pack("BBBB", int(spoiler*15), int(landing_gear*15),
-                int(flap*15), int(brake*15))
-            flagschar = 0
-            if flags["ab"]:
-                flagschar |= 1
-            if flags["firing"]:
-                flagschar |= 8
-            if flags["smoke"]:
-                flagschar |= flags["smoke"] << 8
-            buffer += pack("H", flagschar)
-            buffer += pack("B", int(throttle*99))
-            buffer += pack("b", int(elev*99))
-            buffer += pack("b", int(ail*99))
-            buffer += pack("b", int(rud*99))
-            buffer += pack("b", int(trim*99))
-            buffer += pack("H", rocket_ammo)
-            if packet_version >= 1:
-                buffer += pack("fff", *atti_velocity)
-            if packet_version >= 2:
-                buffer += pack("BBB", int(thrust_vector["vector"]*255), int(thrust_vector["reverser"]*255),
-                    int(bomb_bay_info*255))
+            else:
+                buffer += pack("fff", *position)
+                buffer += pack("HHH", *map(lambda x: int(x*32768.0/pi), atti))
+                buffer += pack("HHH", *map(lambda x: int(x*10), velocity))
+                buffer += pack("HHH", *map(lambda x: int(x*32768.0/pi), atti_velocity))
+                buffer += pack("H", int(g_value))
+                buffer += pack("HHHHH", gun_ammo, aam, agm, bomb, smoke_oil)
+                buffer += pack("f", payload)
+                buffer += pack("H", life)
+                buffer += pack("BB", flight_state, int(vgw*255))
+                buffer += pack("BBBB", int(spoiler*15), int(landing_gear*15),
+                    int(flap*15), int(brake*15))
+                flagschar = 0
+                if flags["ab"]:
+                    flagschar |= 1
+                if flags["firing"]:
+                    flagschar |= 8
+                if flags["smoke"]:
+                    flagschar |= flags["smoke"] << 8
+                buffer += pack("H", flagschar)
+                buffer += pack("B", int(throttle*99))
+                buffer += pack("b", int(elev*99))
+                buffer += pack("b", int(ail*99))
+                buffer += pack("b", int(rud*99))
+                buffer += pack("b", int(trim*99))
+                buffer += pack("H", rocket_ammo)
+                if packet_version >= 1:
+                    buffer += pack("fff", *atti_velocity)
+                if packet_version >= 2:
+                    buffer += pack("BBB", int(thrust_vector["vector"]*255), int(thrust_vector["reverser"]*255),
+                        int(bomb_bay_info*255))
 
-        if with_size:
-            return pack("I",len(buffer))+buffer
-        return buffer
+            if with_size:
+                return pack("I",len(buffer))+buffer
+            return buffer
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
 
     def __str__(self):
         return f"Player ID : {self.player_id}; Remote Time : {self.remote_time}; \
