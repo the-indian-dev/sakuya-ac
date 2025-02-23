@@ -58,7 +58,9 @@ class Plugin:
                 return True
             else:
                 try:
-                    position_data = struct.pack("3f", 10000, 1000.0, 1000.0)
+                    # This is a really arbitary position thats hard to reach, better would
+                    # be to randomise it for every time the server starts.
+                    position_data = struct.pack("3f", 10e7, 10e7, 10e7)
                     if decode.packet_version == 4 or 5:
                         updated_data = data[:14] + position_data + data[26:]
                     else:

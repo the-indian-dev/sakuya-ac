@@ -19,7 +19,7 @@ class Plugin:
         self.plugin_manager.register_hook('on_add_object_server', self.on_add_object_server)
         # self.plugin_manager.register_hook('on_flight_data_server', self.on_flight_data_server)
         self.plugin_manager.register_hook('on_join_request', self.on_join_request)
-        
+
 
     def on_add_object_server(self, data, player, messages_to_client, *args):
         packet = FSNETCMD_ADDOBJECT(data)
@@ -43,18 +43,18 @@ class Plugin:
     #         packet.position = [0,2000.0,0]
     #         packet.velocity = [25,0,25]
     #         messages_to_client.append(packet.to_packet())
-            
+
     #         self.first_add_object = False
     #         return False
     #     return True
-    
+
     def on_join_request(self, data, player, messages_to_client, message_to_server, *args):
         packet = FSNETCMD_JOINREQUEST(data)
         #Replace the aircraft:
         packet.aircraft = "EUROFIGHTER_TYPHOON"
         message_to_server.append(packet.to_packet())
         return False
-    
+
     # def on_receive(self, data, player, messages_to_client, *args):
     #     if ENABLED:
     #         if abs(player.aircraft.last_packet.g_value)> G_LIM:
