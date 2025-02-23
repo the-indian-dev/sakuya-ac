@@ -58,16 +58,16 @@ class PluginManager:
         If a callback returns False, then the original data is set to None
         and not forwarded to the destination. This is useful for modifying
         packets."""
-        keep_orignal = True
+        keep_original = True
         if hook_name in self.hooks:
             for callback in self.hooks[hook_name]:
                 keep = callback(data, *args, **kwargs)
                 if type(keep) == bool:
                     if keep == False:
-                        keep_orignal = False
+                        keep_original = False
                 else:
                     warning(f"Return value of {callback} is not a boolean")
-        return keep_orignal
+        return keep_original
 
     def trigger_command(self, command:str, player,  full_message:str, message_to_client:list, message_to_server:list):
         """Triggers the command"""
