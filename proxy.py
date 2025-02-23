@@ -130,6 +130,11 @@ async def handle_client(client_reader, client_writer):
                                         writer.write(data)
                                         continue
 
+                                elif packet_type == "FSNETCMD_JOINREQUEST":
+                                    player.iff = FSNETCMD_JOINREQUEST(packet).iff + 1
+                                    if DISCORD_ENABLED:
+                                        asyncio.create_task(discord_send_message(CHANNEL_ID, f"{player.username} has taken off! 🛫"))
+
                                 elif packet_type == "FSNETCMD_AIRPLANESTATE":
                                     player.aircraft.add_state(FSNETCMD_AIRPLANESTATE(packet)) #TODO: Do we want to convert all this to plugins? Probably not, but there is duplicated functionality
                                     # keep_message = plugin_manager.triggar_hook('on_flight_data', packet, player, message_to_client, message_to_server)
@@ -144,6 +149,8 @@ async def handle_client(client_reader, client_writer):
                                     player.aircraft.just_repaired = False
 
                                 elif packet_type == "FSNETCMD_UNJOIN":
+                                    if DISCORD_ENABLED:
+                                        asyncio.create_task(discord_send_message(CHANNEL_ID, f"{player.username} has left the airplane! 🛬"))
                                     player.aircraft.reset()
 
                                 elif packet_type == "FSNETCMD_WEAPONCONFIG":
@@ -245,12 +252,16 @@ async def start_proxy():
     info(f"Proxy server listening on port {PROXY_PORT}")
     if DISCORD_ENABLED:
         await asyncio.create_task(monitor_channel(CHANNEL_ID, CONNECTED_PLAYERS))
+        # await asyncio.create_task(set_bot_status_online())
     async with server:
         await server.serve_forever()
 
 
 if __name__ == "__main__":
     try:
+        if DISCORD_ENABLED:
+            asyncio.run(discord_send_message(CHANNEL_ID, "✅ Server has started."))
         asyncio.run(start_proxy())
     except KeyboardInterrupt:
+        asyncio.run(discord_send_message(CHANNEL_ID, "❌ Server has stopped."))
         info("Goodbye!")

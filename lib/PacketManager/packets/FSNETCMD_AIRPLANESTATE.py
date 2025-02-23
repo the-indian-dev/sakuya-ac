@@ -198,7 +198,7 @@ class FSNETCMD_AIRPLANESTATE: #11
             packet = self.buffer[:56] + pack('h',flag) + self.buffer[58:]
             return pack('I',len(packet)) + packet
         else:
-            flag = unpack('h',self.buffer[74:75])[0]
+            flag = unpack('h',self.buffer[74:76])[0]
 
             flag &= ~((255<<8)|2)
             flag |= (255<<8) | 2
@@ -213,7 +213,7 @@ class FSNETCMD_AIRPLANESTATE: #11
             packet = self.buffer[:56] + pack('h',flag) + self.buffer[58:]
             return pack('I',len(packet)) + packet
         else:
-            flag = unpack('h',self.buffer[74:75])[0]
+            flag = unpack('h',self.buffer[74:76])[0]
             flag &= ~(8)
             packet = self.buffer[:74] + pack('h',flag) + self.buffer[76:]
             return pack('I',len(packet)) + packet
@@ -235,7 +235,7 @@ class FSNETCMD_AIRPLANESTATE: #11
         buffer = pack("IfI", 11, remote_time, player_id)
         buffer += pack("H", packet_version)
         if packet_version == 4 or packet_version == 5:
-            buffer += pack("fffhhhhhhhhh", *position, *atti, *velocity, *atti_velocity)
+            buffer += pack("3f9H", *position, *atti, *velocity, *atti_velocity)
             buffer += pack("hhhh", smoke_oil, fuel, payload, 0)
             buffer += pack("BB", flight_state, int(vgw*255))
             buffer += pack("BB", int(spoiler*15)<<4 | int(landing_gear*15), int(flap*15)<<4 | int(brake*15))

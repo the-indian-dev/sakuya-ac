@@ -46,7 +46,34 @@ class FSNETCMD_ADDOBJECT: #5
             #There is an extra short, but it's just set to 0
         if len(self.buffer) >= 176:
             self.pilot = unpack("32s", self.buffer[124:156])[0].decode().strip('\x00')
+    
+    def to_dict(self):
+        return {
+            "object_type": self.object_type,
+            "net_type": self.net_type,
+            "object_id": self.object_id,
+            "iff": self.iff,
+            "pos": self.pos,
+            "atti": self.atti,
+            "identifier": self.identifier,
+            "substrname": self.substrname,
+            "ysfid": self.ysfid,
+            "flags": self.flags,
+            "flags0": self.flags0,
+            "outside_radius": self.outsideRadius,
+            "aircraft_class": self.aircraft_class,
+            "aircraft_category": self.aircraft_category,
+            "pilot": self.pilot
+        }
 
+    def to_packet(self, with_size:bool=True):
+        return FSNETCMD_ADDOBJECT.encode(self.object_type, self.net_type,
+                                         self.object_id, self.iff, self.pos,
+                                         self.atti, self.identifier, self.substrname,
+                                         self.ysfid, self.flags, self.flags0,
+                                         self.outsideRadius, self.aircraft_class,
+                                         self.aircraft_category, self.pilot, with_size)
+    
     @staticmethod
     def encode(object_type, net_type, object_id, iff, pos, atti, identifier, substrname, ysfid,
                flags, flags0, outside_radius, aircraft_class=None, aircraft_category=None,
