@@ -36,7 +36,7 @@ Sakuya AC and G Limiter at 20. It also has all the experimental options turned o
 
 ## **Getting Started**
 
-[Docmentation for Plugin API and advanced configuration](https://the-indian-dev.github.io/sakuya-ac/)
+[Docmentation for Plugin API and advanced configuration](https://sakuya-ac.theindiandev.in/)
 
 ### **Prerequisites**
 - Python 3.9+
