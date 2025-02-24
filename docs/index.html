@@ -6,10 +6,12 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
         <meta
             name="description"
-            content="API Documentations for developing plugins for Sakuya AC"
+            content="Documentation for Sakuya AC, The Perfect and Elegant YSFlight Proxy Server.
+            Fully free and open source licensed under the GPLv3 License. Stupid fast and has plugin support!"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
-        <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" />
+        <!-- <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" /> -->
+        <link rel="stylesheet" href="github.css" />
     </head>
     <body>
         <div id="app"></div>
@@ -21,6 +23,8 @@
                 loadSidebar: true,
                 onlyCover: true,
                 coverpage: true,
+                themeColor: "#3F51B5",
+                loadFooter: true,
                 plugins: [
                     function (hook) {
                         hook.doneEach(function () {
@@ -38,5 +42,7 @@
         <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
         <!-- Collapsable side bar -->
         <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+        <!-- Footer -->
+        <script src=" https://cdn.jsdelivr.net/npm/@alertbox/docsify-footer@1.0.0-0/dist/docsify-footer.min.js "></script>
     </body>
 </html>

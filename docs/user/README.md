@@ -10,10 +10,7 @@ This guide will help you to install Sakuya AC on your server
 
 ## Quick Start Guide
 
-1. Clone the git repository
-```bash
-git clone git@github.com:the-indian-dev/sakuya-ac
-```
+1. Download the latest version of Sakuya AC from [here](https://github.com/the-indian-dev/sakuya-ac/releases/)
 
 2. You will need Python 3.9 or above to run Sakuya AC
 Please make sure you have correct version of Python

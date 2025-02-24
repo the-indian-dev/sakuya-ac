@@ -12,6 +12,6 @@ Contributors
 - Skipper
 - Biry
 
-[Github](https://github.com/the-indian-dev/sakuya-ac)
+[Latest Release](https://github.com/the-indian-dev/sakuya-ac/releases/)
 [API Documentation](/api/README.md)
 [User Documentation](/user/README.md)
