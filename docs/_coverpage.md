@@ -1,4 +1,4 @@
-![logo](/favicon.ico)
+![Animated GIF Of Sakuya dancing](/touhou-sakuya.gif ':size=100')
 
 # Sakuya AC
 
