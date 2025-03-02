@@ -1,6 +1,7 @@
 """
 This plugin enables you to perform air to air refueling.
 """
+from ast import alias
 import math
 from lib.PacketManager.packets import FSNETCMD_AIRCMD, FSNETCMD_AIRPLANESTATE
 from lib import YSchat
@@ -21,8 +22,8 @@ class Plugin:
 
     def register(self, plugin_manager):
         self.plugin_manager = plugin_manager
-        self.plugin_manager.register_command('refuel', self.refuel)
-        self.plugin_manager.register_command('refueler', self.refueler)
+        self.plugin_manager.register_command('refuel', self.refuel, "Allows you to get refuled", alias = "r")
+        self.plugin_manager.register_command('refueler', self.refueler, "Allows other players to refuel from you", alias = "rf")
         self.plugin_manager.register_hook('on_flight_data', self.on_flight_data)
         self.plugin_manager.register_hook('on_unjoin', self.on_unjoin)
 

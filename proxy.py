@@ -57,6 +57,14 @@ info("Press CTRL+C to stop the proxy")
 #Load the plugins
 plugin_manager = PluginManager()
 
+# Close Connection
+async def close_connection(client_writer, server_writer):
+    # if DISCORD_ENABLED: await discord_send_message(CHANNEL_ID, "has left the server!")
+    client_writer.close()
+    server_writer.close()
+    await client_writer.wait_closed()
+    await server_writer.wait_closed()
+
 # Handle client connections
 async def handle_client(client_reader, client_writer):
     message_to_client = []
@@ -92,10 +100,13 @@ async def handle_client(client_reader, client_writer):
                         try:
                             header = await reader.readexactly(4)  # Ensures we always get 4 bytes
                         except asyncio.IncompleteReadError:
+                            await close_connection(client_writer, server_writer)
                             break
                         except ConnectionResetError:
+                            await close_connection(client_writer, server_writer)
                             break
                         except Exception as e:
+                            await close_connection(client_writer, server_writer)
                             critical(f"Error reading header: {e}")
                             break
 
@@ -107,6 +118,7 @@ async def handle_client(client_reader, client_writer):
                         packet = await reader.read(length)
 
                         if not packet:
+                            await close_connection(client_writer, server_writer)
                             break
 
                         data = header + packet
@@ -170,10 +182,10 @@ async def handle_client(client_reader, client_writer):
                                         data = None
                                         command = msg.message.split(" ")[0][1:]
                                         asyncio.create_task(triggerCommand.triggerCommand(command, msg.message, player, message_to_client, message_to_server, plugin_manager))
-
-                                    if DISCORD_ENABLED:
-                                        # Make it non blocking!
-                                        asyncio.create_task(discord_send_message(CHANNEL_ID, finalMsg))
+                                    else:
+                                        if DISCORD_ENABLED:
+                                            # Make it non blocking!
+                                            asyncio.create_task(discord_send_message(CHANNEL_ID, finalMsg))
 
                                 elif packet_type == "FSNETCMD_LIST":
                                     # keep_message = plugin_manager.triggar_hook('on_list', packet, player, message_to_client, message_to_server)
@@ -223,11 +235,13 @@ async def handle_client(client_reader, client_writer):
                             writer.write(data)
                             await writer.drain()
                 except (asyncio.CancelledError, ConnectionResetError, BrokenPipeError) as e:
-                    if e == BrokenPipeError or  ConnectionResetError or asyncio.CancelledError:
-                        info(f"Connection closed by {player.username} : {player.ip}")
-                    else:
-                        warning(f"Connection error during packet forwarding: {e}")
-                    break
+                    if not player.connection_closed:
+                        await close_connection(client_writer, server_writer)
+                        if e == BrokenPipeError or  ConnectionResetError or asyncio.CancelledError:
+                            info(f"Connection closed by {player.username} : {player.ip}")
+                        else:
+                            warning(f"Connection error during packet forwarding: {e}")
+                        break
 
         # Start forwarding data between client and server
         await asyncio.gather(
@@ -238,12 +252,20 @@ async def handle_client(client_reader, client_writer):
         if not isinstance(e, BrokenPipeError):
             critical(f"Connection error: {e}")
     finally:
+        """
         try:
-            client_writer.close()
-            await client_writer.wait_closed()
+            #client_writer.close()
+            #await client_writer.wait_closed()
+            pass
         except Exception as e:
             if not isinstance(e, BrokenPipeError):
                 critical(f"Error closing client connection: {e}")
+        """
+        if not player.connection_closed:
+            player.connection_closed = True
+            if DISCORD_ENABLED :
+                await discord_send_message(CHANNEL_ID, f"{player.username} has left the server!")
+            await close_connection(client_writer, server_writer)
 
 
 # Start the proxy server

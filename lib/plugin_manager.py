@@ -45,13 +45,24 @@ class PluginManager:
             self.hooks[hook_name] = []
         self.hooks[hook_name].append(callback)
 
-    def register_command(self, command_name, callback):
-        """Registers the command with the plugin manager"""
+    def register_command(self, command_name, callback, help_text="No Description", alias:str=None):
+        """Registers the command with the plugin manager
+        Set help text to help users understand what your command does.
+        """
         if command_name in self.commands:
             warning(f"Command {command_name} already registered, Ignoring this registration")
         else:
             self.commands[command_name] = callback
-            self.help_message = self.help_message + f"/{command_name}\n"
+            if alias == None:
+                self.help_message = self.help_message + f"/{command_name} : {help_text}\n"
+        if alias != None:
+            if alias in self.commands:
+                warning(f"Command {alias} already registered, Ignoring this registration")
+            else:
+                self.commands[alias] = callback
+                self.help_message = self.help_message + f"/{command_name} [{alias}] : {help_text}\n"
+
+
 
     def triggar_hook(self, hook_name, data, *args, **kwargs):
         """Triggars the callbacks for the hook.

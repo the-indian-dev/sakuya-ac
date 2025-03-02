@@ -84,8 +84,6 @@ async def monitor_channel(channel_id, playerList:list):
                         encoded_msg = txtMsgr.encode(f"[Discord] {message['author']['username']}: {message['content']}", True)
                         for player in playerList:
                             if player.streamWriterObject.is_closing():
-                                if not player.is_a_bot:
-                                    asyncio.create_task(discord_send_message(channel_id, f"{player.username} has left the server!"))
                                 playerList.remove(player)  # Remove disconnected players
                                 continue
                             player.streamWriterObject.write(encoded_msg)
