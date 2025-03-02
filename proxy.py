@@ -143,9 +143,10 @@ async def handle_client(client_reader, client_writer):
                                         continue
 
                                 elif packet_type == "FSNETCMD_JOINREQUEST":
-                                    player.iff = FSNETCMD_JOINREQUEST(packet).iff + 1
+                                    decode  = FSNETCMD_JOINREQUEST(packet)
+                                    player.iff = decode.iff
                                     if DISCORD_ENABLED:
-                                        asyncio.create_task(discord_send_message(CHANNEL_ID, f"{player.username} has taken off! 🛫"))
+                                        asyncio.create_task(discord_send_message(CHANNEL_ID, f"{player.username} has took off in a {decode.aircraft}! 🛫"))
 
                                 elif packet_type == "FSNETCMD_AIRPLANESTATE":
                                     player.aircraft.add_state(FSNETCMD_AIRPLANESTATE(packet)) #TODO: Do we want to convert all this to plugins? Probably not, but there is duplicated functionality
@@ -263,7 +264,7 @@ async def handle_client(client_reader, client_writer):
         """
         if not player.connection_closed:
             player.connection_closed = True
-            if DISCORD_ENABLED :
+            if DISCORD_ENABLED and not player.is_a_bot:
                 await discord_send_message(CHANNEL_ID, f"{player.username} has left the server!")
             await close_connection(client_writer, server_writer)
 
