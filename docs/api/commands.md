@@ -14,11 +14,15 @@ you must declare your commands.
 > ```python
 > def register(self, plugin_manager):
 >        self.plugin_manager = plugin_manager
->        self.plugin_manager.register_command('test', self.test)
+>        self.plugin_manager.register_command('test', self.test, "This is a test command", 'alias')
 >```
 
-Now if a person sends a message `!test` in the chat, the `test` method of your plugin
-will run.
+``register_command`` takes 4 arguments:
+- Command Name (string) : This is the first argument, which tells the main command name for your command.
+- Callback : This is function that will be run when a user runs your command. Structure of a command
+function is shown below.
+- Help text (string, optional) : This string contains what your command does, it will be displayed in ``help`` command.
+- Alias (string, optional) : Helps you define an alias for your command. Useful for creating shorter command name for ease of use.
 
 # Command Function Structure
 

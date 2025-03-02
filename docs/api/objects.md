@@ -223,7 +223,7 @@ The `Player` class represents a connected client. It stores key information such
 *   **`streamWriterObject`**: Object for handling network communication with the player's client.
 *   **`is_a_bot`**: A boolean flag indicating if the player is considered a bot. Initially `True`, and is intended to be set to `False` after a successful `LOGIN` packet is processed, to differentiate real players from initial bot-like states.
 *   **`iff`** : An inetger value which contains the last-known IFF value of the player. Intially `1`, changes with Join Requests from player.
-
+*  **connection_closed** : A boolean flag that indicates if a player has closed connection.
 #### Methods
 
 ##### `set_aircraft(aircraft: Aircraft)`
