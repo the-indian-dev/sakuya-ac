@@ -40,7 +40,8 @@ class ColoredFormatter(logging.Formatter):
     def format(self, record):
         log_color = COLORS.get(record.levelname, COLORS["RESET"])
         reset = COLORS["RESET"]
-        log_message = f"{log_color}{record.levelname}: {record.getMessage()}{reset}"
+        file_name = record.pathname.split('/')[-1]  # Extract just the filename
+        log_message = f"{log_color}{record.levelname} [{file_name}:{record.lineno}]: {record.getMessage()}{reset}"
         return log_message
 
 logging.basicConfig(level=LOGGING_LEVEL)
@@ -286,5 +287,6 @@ if __name__ == "__main__":
             asyncio.run(discord_send_message(CHANNEL_ID, "✅ Server has started."))
         asyncio.run(start_proxy())
     except KeyboardInterrupt:
-        asyncio.run(discord_send_message(CHANNEL_ID, "❌ Server has stopped."))
+        if DISCORD_ENABLED:
+            asyncio.run(discord_send_message(CHANNEL_ID, "❌ Server has stopped."))
         info("Goodbye!")

@@ -59,7 +59,7 @@ def triggerRespectiveHook(packet_type, packet, player, message_to_client, messag
         keep_message = plugin_manager.triggar_hook('on_list', packet, player, message_to_client, message_to_server)
     else:
         keep_message = True
-        debug(f"Unknown packet type {packet_type}, C2S")
+        debug(f"Unimplemented packet type {packet_type}, C2S")
 
     return keep_message
 
@@ -122,6 +122,6 @@ def triggerRespectiveHookServer(packet_type, packet, player, message_to_client, 
         keep_message = plugin_manager.triggar_hook('on_list_server', packet, player, message_to_client, message_to_server)
     else:
         keep_message = True
-        debug(f"Unknown packet type {packet_type}, S2C")
+        debug(f"Unimplemented packet type {packet_type}, S2C")
 
     return keep_message

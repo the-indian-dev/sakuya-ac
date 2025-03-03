@@ -10,7 +10,7 @@ class PluginManager:
     def __init__(self):
         self.plugins = {}
         self.hooks= {}
-        self.commands = {}
+        self.commands = {'help': None}
         self.help_message = "List of Available Commands:\n"
         self.load_plugins()
 
