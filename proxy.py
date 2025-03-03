@@ -125,7 +125,7 @@ async def handle_client(client_reader, client_writer):
                         data = header + packet
                         packet_type = PacketManager().get_packet_type(packet)
                         if direction == "client_to_server":
-                            debug("C2S" + str(packet_type))
+                            debug("C2S" + str(packet_type) + str(player.username))
                             debug(data)
 
                             try:
@@ -203,7 +203,7 @@ async def handle_client(client_reader, client_writer):
                                 traceback.print_exc()  # This will display the full traceback
 
                         else :
-                            debug("S2C" + str(packet_type))
+                            debug("S2C" + str(packet_type) + str(player.username))
                             debug(data)
 
                             #if packet_type == "FSNETCMD_AIRCMD":
