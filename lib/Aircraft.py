@@ -78,9 +78,8 @@ class Aircraft:
             return None
         if self.life == -1:
             self.life=packet.life
-        
+
         self.prev_life = self.life
-        
         self.life = packet.life
         self.set_position(packet.position)
         self.set_attitude(packet.atti)

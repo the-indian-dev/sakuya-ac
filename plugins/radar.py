@@ -9,7 +9,7 @@ import struct
 import traceback
 
 ENABLED = True
-RADIUS = 5000 # in meters, within this range planes with different IFF can see each other.
+RADIUS = 9000 # in meters, within this range planes with different IFF can see each other.
 
 flying_players = {}
 

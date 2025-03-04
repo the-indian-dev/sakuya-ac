@@ -56,7 +56,7 @@ info("Lisenced under GPLv3")
 info("Press CTRL+C to stop the proxy")
 
 #Load the plugins
-plugin_manager = PluginManager()
+plugin_manager = PluginManager(CONNECTED_PLAYERS)
 
 # Close Connection
 async def close_connection(client_writer, server_writer):
@@ -135,6 +135,7 @@ async def handle_client(client_reader, client_writer):
                                     # if not keep_message:
                                     #    data = None
                                     player.login(FSNETCMD_LOGON(packet))
+                                    info(f"Player {player.username} connected from {player.ip}")
                                     if player.version != YSF_VERSION and VIA_VERSION:
                                         info(f"ViaVersion enabled : Porting {player.username} from {player.version} to {YSF_VERSION}")
                                         message_to_client.append(YSchat.message(f"Porting you to YSFlight {YSF_VERSION}, This is currently Experimental"))
@@ -150,7 +151,8 @@ async def handle_client(client_reader, client_writer):
                                         asyncio.create_task(discord_send_message(CHANNEL_ID, f"{player.username} has took off in a {decode.aircraft}! 🛫"))
 
                                 elif packet_type == "FSNETCMD_AIRPLANESTATE":
-                                    player.aircraft.add_state(FSNETCMD_AIRPLANESTATE(packet)) #TODO: Do we want to convert all this to plugins? Probably not, but there is duplicated functionality
+                                    decode = FSNETCMD_AIRPLANESTATE(packet)
+                                    player.aircraft.add_state(decode) #TODO: Do we want to convert all this to plugins? Probably not, but there is duplicated functionality
                                     # keep_message = plugin_manager.triggar_hook('on_flight_data', packet, player, message_to_client, message_to_server)
                                     # if not keep_message:
                                     #    data = None
@@ -265,8 +267,10 @@ async def handle_client(client_reader, client_writer):
         """
         if not player.connection_closed:
             player.connection_closed = True
-            if DISCORD_ENABLED and not player.is_a_bot:
-                await discord_send_message(CHANNEL_ID, f"{player.username} has left the server!")
+            if not player.is_a_bot:
+                message_to_server.append(YSchat.message(f"{player.username} has left the server!"))
+                if DISCORD_ENABLED:
+                    await discord_send_message(CHANNEL_ID, f"{player.username} has left the server!")
             await close_connection(client_writer, server_writer)
 
 

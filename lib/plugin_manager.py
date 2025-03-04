@@ -7,12 +7,13 @@ PLUGIN_DIR = os.path.join(os.path.dirname(__file__), '../plugins')
 sys.path.append(PLUGIN_DIR)
 
 class PluginManager:
-    def __init__(self):
+    def __init__(self, connected_players):
         self.plugins = {}
         self.hooks= {}
         self.commands = {'help': None}
         self.help_message = "List of Available Commands:\n"
         self.load_plugins()
+        self.connected_players = connected_players
 
     def load_plugins(self):
         for plugin in os.listdir(PLUGIN_DIR):
