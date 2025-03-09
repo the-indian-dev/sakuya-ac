@@ -131,11 +131,17 @@ async def handle_client(client_reader, client_writer):
                             try:
 
                                 if packet_type == "FSNETCMD_LOGON":
-                                    # keep_message = plugin_manager.triggar_hook('on_login', packet, player, message_to_client, message_to_server)
-                                    # if not keep_message:
-                                    #    data = None
-                                    player.login(FSNETCMD_LOGON(packet))
+                                    decode = FSNETCMD_LOGON(packet)
+                                    for p in CONNECTED_PLAYERS:
+                                        if p.username == decode.username:
+                                            client_writer.write(YSchat.message(f"Same username {decode.username} is aldready connected to server! Kicked {ipAddr}"))
+                                            data = None
+                                            info(f"Same username {decode.username} is aldready connected to server! Kicked {ipAddr}")
+                                            await close_connection(client_writer, server_writer)
+
+                                    player.login(decode)
                                     info(f"Player {player.username} connected from {player.ip}")
+
                                     if player.version != YSF_VERSION and VIA_VERSION:
                                         info(f"ViaVersion enabled : Porting {player.username} from {player.version} to {YSF_VERSION}")
                                         message_to_client.append(YSchat.message(f"Porting you to YSFlight {YSF_VERSION}, This is currently Experimental"))
@@ -152,7 +158,9 @@ async def handle_client(client_reader, client_writer):
 
                                 elif packet_type == "FSNETCMD_AIRPLANESTATE":
                                     decode = FSNETCMD_AIRPLANESTATE(packet)
-                                    player.aircraft.add_state(decode) #TODO: Do we want to convert all this to plugins? Probably not, but there is duplicated functionality
+                                    player.aircraft.add_state(decode)
+
+                                    #TODO: Do we want to convert all this to plugins? Probably not, but there is duplicated functionality
                                     # keep_message = plugin_manager.triggar_hook('on_flight_data', packet, player, message_to_client, message_to_server)
                                     # if not keep_message:
                                     #    data = None
@@ -186,6 +194,7 @@ async def handle_client(client_reader, client_writer):
                                         data = None
                                         command = msg.message.split(" ")[0][1:]
                                         asyncio.create_task(triggerCommand.triggerCommand(command, msg.message, player, message_to_client, message_to_server, plugin_manager))
+                                        info(f"Command {command} triggered by {player.username}")
                                     else:
                                         if DISCORD_ENABLED:
                                             # Make it non blocking!
@@ -267,8 +276,10 @@ async def handle_client(client_reader, client_writer):
         """
         if not player.connection_closed:
             player.connection_closed = True
+            CONNECTED_PLAYERS.remove(player)
             if not player.is_a_bot:
-                message_to_server.append(YSchat.message(f"{player.username} has left the server!"))
+                for player in CONNECTED_PLAYERS:
+                    player.streamWriterObject.write(YSchat.message(f"{player.username} has left the server!"))
                 if DISCORD_ENABLED:
                     await discord_send_message(CHANNEL_ID, f"{player.username} has left the server!")
             await close_connection(client_writer, server_writer)

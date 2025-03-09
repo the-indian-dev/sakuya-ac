@@ -27,7 +27,8 @@ class Player:
         self.ip = ip
 
     def check_add_object(self, packet:FSNETCMD_ADDOBJECT):
-        if packet.pilot == self.username:
+        # we check the full name here
+        if packet.pilot == self.alias:
             self.aircraft = Aircraft()
             self.aircraft.name = packet.identifier
             self.aircraft.id = packet.object_id

@@ -10,8 +10,6 @@ class Plugin:
 
     def register(self, plugin_manager):
         self.plugin_manager = plugin_manager
-        #self.plugin_manager.register_hook('on_unjoin', self.on_death)
-        #self.plugin_manager.register_hook('on_add_object_server', self.on_join)
         self.plugin_manager.register_hook('on_remove_airplane_server', self.on_death)
 
     def on_death(self, data, player, message_to_client, message_to_server):

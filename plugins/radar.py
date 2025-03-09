@@ -60,7 +60,7 @@ class Plugin:
                 try:
                     # This is a really arbitary position thats hard to reach, better would
                     # be to randomise it for every time the server starts.
-                    position_data = struct.pack("3f", 10e7, 10e7, 10e7)
+                    position_data = struct.pack("3f", 10e8, 200, 10e8)
                     if decode.packet_version == 4 or 5:
                         updated_data = data[:14] + position_data + data[26:]
                     else:
