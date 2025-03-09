@@ -13,10 +13,10 @@ class Plugin:
         self.plugin_manager = plugin_manager
         #self.plugin_manager.register_hook('on_chat', self.on_chat)
         self.plugin_manager.register_hook('on_environment_server', self.on_environment)
-        self.plugin_manager.register_command('fog', self.fog)
-        self.plugin_manager.register_command('sky', self.sky)
-        self.plugin_manager.register_command('time', self.time)
-        self.plugin_manager.register_command('vis', self.visibility)
+        self.plugin_manager.register_command('fog', self.fog, "Sets fog color. Usage : /fog r,g,b")
+        self.plugin_manager.register_command('sky', self.sky, "Sets sky color. Usage : /sky r,g,b")
+        self.plugin_manager.register_command('time', self.time, "Sets time. Usage : /time <day|night>")
+        self.plugin_manager.register_command('visibility', self.visibility, "Sets Visibilty : /vis <visibilty in meters>", "vis")
 
     def fog(self, full_message, player, message_to_client, message_to_server):
         try:

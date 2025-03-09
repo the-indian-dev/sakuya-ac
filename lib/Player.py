@@ -13,6 +13,7 @@ class Player:
         self.streamWriterObject = streamWriterObject
         self.is_a_bot = True # We check if they are still present after LOGIN packet, then they're not a bot
         self.iff = 1
+        self.connection_closed = False
 
     def set_aircraft(self, aircraft:Aircraft):
         self.aircraft = aircraft
@@ -26,7 +27,8 @@ class Player:
         self.ip = ip
 
     def check_add_object(self, packet:FSNETCMD_ADDOBJECT):
-        if packet.pilot == self.username:
+        # we check the full name here
+        if packet.pilot == self.alias:
             self.aircraft = Aircraft()
             self.aircraft.name = packet.identifier
             self.aircraft.id = packet.object_id

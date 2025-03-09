@@ -7,12 +7,13 @@ PLUGIN_DIR = os.path.join(os.path.dirname(__file__), '../plugins')
 sys.path.append(PLUGIN_DIR)
 
 class PluginManager:
-    def __init__(self):
+    def __init__(self, connected_players):
         self.plugins = {}
         self.hooks= {}
-        self.commands = {}
+        self.commands = {'help': None}
         self.help_message = "List of Available Commands:\n"
         self.load_plugins()
+        self.connected_players = connected_players
 
     def load_plugins(self):
         for plugin in os.listdir(PLUGIN_DIR):
@@ -45,13 +46,24 @@ class PluginManager:
             self.hooks[hook_name] = []
         self.hooks[hook_name].append(callback)
 
-    def register_command(self, command_name, callback):
-        """Registers the command with the plugin manager"""
+    def register_command(self, command_name, callback, help_text="No Description", alias:str=None):
+        """Registers the command with the plugin manager
+        Set help text to help users understand what your command does.
+        """
         if command_name in self.commands:
             warning(f"Command {command_name} already registered, Ignoring this registration")
         else:
             self.commands[command_name] = callback
-            self.help_message = self.help_message + f"/{command_name}\n"
+            if alias == None:
+                self.help_message = self.help_message + f"/{command_name} : {help_text}\n"
+        if alias != None:
+            if alias in self.commands:
+                warning(f"Command {alias} already registered, Ignoring this registration")
+            else:
+                self.commands[alias] = callback
+                self.help_message = self.help_message + f"/{command_name} [{alias}] : {help_text}\n"
+
+
 
     def triggar_hook(self, hook_name, data, *args, **kwargs):
         """Triggars the callbacks for the hook.
