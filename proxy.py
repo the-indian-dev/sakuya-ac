@@ -137,6 +137,7 @@ async def handle_client(client_reader, client_writer):
                                             client_writer.write(YSchat.message(f"Same username {decode.username} is aldready connected to server! Kicked {ipAddr}"))
                                             data = None
                                             info(f"Same username {decode.username} is aldready connected to server! Kicked {ipAddr}")
+                                            CONNECTED_PLAYERS.remove(player)
                                             await close_connection(client_writer, server_writer)
 
                                     player.login(decode)
