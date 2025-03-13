@@ -344,8 +344,8 @@ async def handle_client(client_reader, client_writer):
                         except Exception as e:
                             warning(f"Error sending disconnect message: {e}")
 
-                if DISCORD_ENABLED:
-                    await discord_send_message(CHANNEL_ID, f"{player.username} has left the server!")
+                    if DISCORD_ENABLED:
+                        await discord_send_message(CHANNEL_ID, f"{player.username} has left the server!")
 
             # Always close connections, regardless of previous state
             try:
